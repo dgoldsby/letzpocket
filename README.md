@@ -1,46 +1,127 @@
-# Getting Started with Create React App
+# LetzPocket
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+LetzPocket is a comprehensive property management application designed specifically for UK landlords. This MVP provides essential tools to help landlords manage their properties efficiently, stay compliant with the Renters Rights Act 2024, and make informed investment decisions.
 
-## Available Scripts
+## Features
 
-In the project directory, you can run:
+### 🏠 Property Management
+- **Property Portfolio Dashboard**: View and manage all your rental properties in one place
+- **Property Details**: Track address, value, rental income, and tenancy information
+- **Tenant Management**: Keep track of current tenants and lease expiry dates
+- **Property Status**: Monitor occupancy status (occupied, vacant, maintenance)
 
-### `npm start`
+### 📋 Tenancy Agreement Checker
+- **Document Upload**: Upload your current tenancy agreements (PDF, DOC, DOCX)
+- **Compliance Analysis**: Automated checking against the Renters Rights Act 2024
+- **Issue Identification**: Get detailed reports on areas that need attention
+- **Recommendations**: Receive specific guidance on how to amend agreements
+- **Download Reports**: Export analysis results for your records
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+### 💰 Yield Calculator
+- **Multi-Property Support**: Calculate yields for multiple properties simultaneously
+- **Comprehensive Metrics**: Gross yield, net yield, ROI, and profit calculations
+- **Cost Tracking**: Factor in maintenance, insurance, and other costs
+- **Vacancy Rate Adjustment**: Account for potential void periods
+- **Portfolio Summary**: View combined performance across all properties
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+### 📊 House Price Estimator
+- **Market Valuation**: Get estimated property values based on current UK market data
+- **Detailed Property Analysis**: Consider property type, size, condition, and features
+- **Local Market Insights**: Compare with local average prices
+- **Trend Analysis**: Understand current market trends in your area
+- **Confidence Scoring**: Get reliability indicators for estimates
 
-### `npm test`
+## Technology Stack
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+- **Frontend**: React 18 with TypeScript
+- **Styling**: TailwindCSS with custom design system
+- **UI Components**: Custom components inspired by shadcn/ui
+- **Icons**: Lucide React
+- **Build Tool**: Create React App
 
-### `npm run build`
+## Getting Started
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+### Prerequisites
+- Node.js (version 14 or higher)
+- npm or yarn
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+### Installation
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+1. Clone the repository:
+```bash
+git clone <repository-url>
+cd letzpocket
+```
 
-### `npm run eject`
+2. Install dependencies:
+```bash
+npm install
+```
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+3. Start the development server:
+```bash
+npm start
+```
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+4. Open [http://localhost:3000](http://localhost:3000) to view the application in your browser.
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+### Available Scripts
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+- `npm start` - Runs the app in development mode
+- `npm test` - Launches the test runner
+- `npm run build` - Builds the app for production
+- `npm run eject` - Ejects from Create React App (one-way operation)
 
-## Learn More
+## Key Features in Detail
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+### Tenancy Agreement Checker
+The agreement checker analyzes uploaded documents for compliance with the Renters Rights Act 2024, identifying:
+- Missing compliance clauses
+- Unclear rent increase terms
+- Outdated termination notice periods
+- Other regulatory requirements
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Each issue is categorized by severity (high, medium, low) with specific recommendations for remediation.
+
+### Yield Calculator
+Calculate comprehensive rental yields including:
+- **Gross Yield**: Basic rental income as percentage of property value
+- **Net Yield**: After accounting for costs and vacancy periods
+- **ROI**: Return on investment considering total costs
+- **Profit Analysis**: Monthly and annual profit projections
+
+### Price Estimator
+Get accurate property valuations based on:
+- Property location (postcode)
+- Property type and size
+- Number of bedrooms and bathrooms
+- Property condition
+- Additional features (garden, parking, garage)
+- Current market trends
+
+## Future Enhancements
+
+Planned features for future releases:
+- Integration with Zoopla and Rightmove for automatic property listings
+- Automated rent collection processing
+- Maintenance request tracking
+- Tax calculation assistance
+- Document storage and management
+- Mobile application
+- Advanced reporting and analytics
+
+## Contributing
+
+This is an MVP project. Contributions and feedback are welcome for future development.
+
+## License
+
+[License information to be added]
+
+## Support
+
+For support or questions about LetzPocket, please contact the development team.
+
+---
+
+**LetzPocket** - Empowering UK landlords with modern property management tools.
