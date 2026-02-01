@@ -50,7 +50,7 @@ options:
 
 # Substitutions
 substitutions:
-  _PROJECT_ID: 'your-project-id'
+  _PROJECT_ID: 'letzpocket-site'
   _BUCKET_NAME: 'letz-pocket-website'
   _CDN_NAME: 'letz-pocket-cdn'
 

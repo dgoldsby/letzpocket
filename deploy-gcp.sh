@@ -6,23 +6,23 @@
 set -e
 
 # Configuration - UPDATE THESE VALUES
-PROJECT_ID="letz-pocket-prod"  # Change to your actual project ID
+PROJECT_ID="letzpocket-site"  # Your existing project ID
 REGION="europe-west2"
 SERVICE_NAME="letz-pocket"
 BUCKET_NAME="letz-pocket-website"
 
 # Mailchimp Configuration - UPDATE THESE VALUES
-MAILCHIMP_API_KEY="your_mailchimp_api_key_here"
-MAILCHIMP_SERVER_PREFIX="us1"  # e.g., us1, us2, etc.
-MAILCHIMP_LIST_ID="your_audience_list_id_here"
+MAILCHIMP_API_KEY="ca0df8a8db2d8f45d767bd2b7badef7a"
+MAILCHIMP_SERVER_PREFIX="us6"  # e.g., us1, us2, etc.
+MAILCHIMP_LIST_ID="WEBSITE"
 
 # Firebase Configuration - UPDATE THESE VALUES
-FIREBASE_API_KEY="your_firebase_api_key_here"
-FIREBASE_AUTH_DOMAIN="your-project.firebaseapp.com"
-FIREBASE_PROJECT_ID="your-project-id"
-FIREBASE_STORAGE_BUCKET="your-project.appspot.com"
-FIREBASE_MESSAGING_SENDER_ID="your_sender_id"
-FIREBASE_APP_ID="your_app_id"
+FIREBASE_API_KEY="AIzaSyBiANBFBL0K4v36ZSYD_wS7uGdRsQIbC-A"
+FIREBASE_AUTH_DOMAIN="letzpocket-site.firebaseapp.com"
+FIREBASE_PROJECT_ID="letzpocket-site"
+FIREBASE_STORAGE_BUCKET="letzpocket-site.firebasestorage.app"
+FIREBASE_MESSAGING_SENDER_ID="557937099852"
+FIREBASE_APP_ID="1:557937099852:web:b3dfab6dac35efb51ae0e9"
 
 echo "🚀 Starting LetzPocket deployment to Google Cloud Platform..."
 echo "📋 Project: $PROJECT_ID"
@@ -161,7 +161,7 @@ echo "   - mailchimp-server-prefix"
 echo "   - mailchimp-list-id"
 echo "   - firebase-api-key"
 echo ""
-echo "�🔧 Next steps:"
+echo "�� Next steps:"
 echo "   1. Update your environment variables in the App Engine console"
 echo "   2. Test the application functionality"
 echo "   3. Configure your custom domain if needed"
