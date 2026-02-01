@@ -1,0 +1,46 @@
+runtime: nodejs20
+
+# Instance configuration
+instance_class: F2
+
+# Automatic scaling
+automatic_scaling:
+  min_instances: 1
+  max_instances: 10
+  cpu_utilization:
+    target_utilization: 0.65
+
+# Health check
+health_check:
+  enable_health_check: True
+  check_interval_sec: 5
+  timeout_sec: 4
+  unhealthy_threshold: 2
+  healthy_threshold: 2
+
+# Environment variables
+env_variables:
+  NODE_ENV: 'production'
+  PORT: '8080'
+
+# Network settings
+network:
+  session_affinity: true
+
+# Resource limits
+resources:
+  cpu: 1
+  memory_gb: 0.5
+  disk_size_gb: 10
+
+# Handlers
+handlers:
+  - url: /.*
+    script: auto
+    secure: always
+    redirect_http_response_code: 301
+
+# Runtime configuration
+runtime_config:
+  operating_system: 'ubuntu22'
+  runtime_version: '20'

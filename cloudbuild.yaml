@@ -1,0 +1,60 @@
+steps:
+  # Install dependencies
+  - name: 'Install dependencies'
+    entrypoint: 'npm'
+    args: ['install']
+    
+  # Build the React app
+  - name: 'Build React app'
+    entrypoint: 'npm'
+    args: ['run', 'build']
+    
+  # Deploy to Cloud Storage
+  - name: 'Deploy to Cloud Storage'
+    entrypoint: 'gsutil'
+    args:
+      - '-m'
+      - 'rsync'
+      - '-r'
+      - '-d'
+      - 'build/'
+      - 'gs://letz-pocket-website'
+    
+  # Set public access
+  - name: 'Make files public'
+    entrypoint: 'gsutil'
+    args:
+      - '-m'
+      - 'acl'
+      - 'ch'
+      - '-R'
+      - 'public-read'
+      - 'gs://letz-pocket-website/**'
+    
+  # Invalidate CDN cache
+  - name: 'Invalidate CDN cache'
+    entrypoint: 'gcloud'
+    args:
+      - 'compute'
+      - 'url-maps'
+      - 'invalidate-cdn-cache'
+      - 'letz-pocket-cdn'
+      - '--path'
+      - '/*'
+
+# Configure the build
+options:
+  logging: CLOUD_LOGGING_ONLY
+  machineType: 'E2_HIGHCPU_8'
+  diskSizeGb: 100
+
+# Substitutions
+substitutions:
+  _PROJECT_ID: 'your-project-id'
+  _BUCKET_NAME: 'letz-pocket-website'
+  _CDN_NAME: 'letz-pocket-cdn'
+
+tags:
+  - 'frontend'
+  - 'react'
+  - 'letz-pocket'
