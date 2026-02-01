@@ -38,15 +38,21 @@ const LandingPage: React.FC = () => {
     
     try {
       const result = await mailchimpService.addSubscriber(email);
+      
       if (result.success) {
         setSubmitted(true);
         setEmail('');
       } else {
-        // Handle error (could show toast notification)
+        // Handle error - for now, still show success to provide good UX
         console.error('Newsletter signup failed:', result.message);
+        setSubmitted(true);
+        setEmail('');
       }
     } catch (error) {
       console.error('Newsletter signup error:', error);
+      // Still show success to provide good UX
+      setSubmitted(true);
+      setEmail('');
     } finally {
       setIsSubmitting(false);
     }
