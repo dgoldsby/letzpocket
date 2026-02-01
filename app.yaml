@@ -18,7 +18,7 @@ health_check:
   unhealthy_threshold: 2
   healthy_threshold: 2
 
-# Environment variables
+# Environment variables (these will be overridden by Secret Manager)
 env_variables:
   NODE_ENV: 'production'
   PORT: '8080'
@@ -44,3 +44,8 @@ handlers:
 runtime_config:
   operating_system: 'ubuntu22'
   runtime_version: '20'
+
+# Inbound services
+inbound_services:
+  - name: main
+    port: 8080

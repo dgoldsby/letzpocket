@@ -5,13 +5,29 @@
 
 set -e
 
-# Configuration
-PROJECT_ID="your-project-id"
+# Configuration - UPDATE THESE VALUES
+PROJECT_ID="letz-pocket-prod"  # Change to your actual project ID
 REGION="europe-west2"
 SERVICE_NAME="letz-pocket"
 BUCKET_NAME="letz-pocket-website"
 
+# Mailchimp Configuration - UPDATE THESE VALUES
+MAILCHIMP_API_KEY="your_mailchimp_api_key_here"
+MAILCHIMP_SERVER_PREFIX="us1"  # e.g., us1, us2, etc.
+MAILCHIMP_LIST_ID="your_audience_list_id_here"
+
+# Firebase Configuration - UPDATE THESE VALUES
+FIREBASE_API_KEY="your_firebase_api_key_here"
+FIREBASE_AUTH_DOMAIN="your-project.firebaseapp.com"
+FIREBASE_PROJECT_ID="your-project-id"
+FIREBASE_STORAGE_BUCKET="your-project.appspot.com"
+FIREBASE_MESSAGING_SENDER_ID="your_sender_id"
+FIREBASE_APP_ID="your_app_id"
+
 echo "🚀 Starting LetzPocket deployment to Google Cloud Platform..."
+echo "📋 Project: $PROJECT_ID"
+echo "🌍 Region: $REGION"
+echo "🔧 Service: $SERVICE_NAME"
 
 # Check if gcloud is installed
 if ! command -v gcloud &> /dev/null; then
@@ -24,6 +40,8 @@ fi
 if ! gcloud auth list --filter=status:ACTIVE --format="value(account)" | grep -q .; then
     echo "🔐 Please login to Google Cloud:"
     gcloud auth login
+    echo "📧 Please also set up application default credentials:"
+    gcloud auth application-default login
 fi
 
 # Set the project
@@ -32,27 +50,78 @@ gcloud config set project $PROJECT_ID
 
 # Enable required APIs
 echo "🔧 Enabling required APIs..."
-gcloud services enable cloudbuild.googleapis.com
-gcloud services enable appengine.googleapis.com
-gcloud services enable storage.googleapis.com
-gcloud services enable run.googleapis.com
+gcloud services enable cloudbuild.googleapis.com --project=$PROJECT_ID
+gcloud services enable appengine.googleapis.com --project=$PROJECT_ID
+gcloud services enable storage.googleapis.com --project=$PROJECT_ID
+gcloud services enable run.googleapis.com --project=$PROJECT_ID
+gcloud services enable firebase.googleapis.com --project=$PROJECT_ID
+gcloud services enable secretmanager.googleapis.com --project=$PROJECT_ID
 
 # Create App Engine app if it doesn't exist
 echo "🏗️  Setting up App Engine..."
-if ! gcloud app describe --region=$REGION &> /dev/null; then
-    gcloud app create --region=$REGION
+if ! gcloud app describe --region=$REGION --project=$PROJECT_ID &> /dev/null; then
+    echo "Creating App Engine application..."
+    gcloud app create --region=$REGION --project=$PROJECT_ID
 fi
 
 # Create Cloud Storage bucket if it doesn't exist
 echo "📦 Setting up Cloud Storage bucket..."
-if ! gsutil ls -b gs://$BUCKET_NAME &> /dev/null; then
-    gsutil mb -p $PROJECT_ID gs://$BUCKET_NAME
+if ! gsutil ls -b gs://$BUCKET_NAME --project=$PROJECT_ID &> /dev/null; then
+    echo "Creating Cloud Storage bucket..."
+    gsutil mb -p $PROJECT_ID -l $REGION gs://$BUCKET_NAME
     gsutil iam ch allUsers:objectViewer gs://$BUCKET_NAME
 fi
 
+# Store sensitive data in Secret Manager
+echo "🔐 Setting up secrets in Secret Manager..."
+
+# Mailchimp API Key
+if gcloud secrets describe mailchimp-api-key --project=$PROJECT_ID &> /dev/null; then
+    echo "Updating Mailchimp API key secret..."
+    echo -n "$MAILCHIMP_API_KEY" | gcloud secrets versions add mailchimp-api-key --data-file=- --project=$PROJECT_ID
+else
+    echo "Creating Mailchimp API key secret..."
+    echo -n "$MAILCHIMP_API_KEY" | gcloud secrets create mailchimp-api-key --data-file=- --project=$PROJECT_ID
+fi
+
+# Mailchimp Server Prefix
+if gcloud secrets describe mailchimp-server-prefix --project=$PROJECT_ID &> /dev/null; then
+    echo "Updating Mailchimp server prefix secret..."
+    echo -n "$MAILCHIMP_SERVER_PREFIX" | gcloud secrets versions add mailchimp-server-prefix --data-file=- --project=$PROJECT_ID
+else
+    echo "Creating Mailchimp server prefix secret..."
+    echo -n "$MAILCHIMP_SERVER_PREFIX" | gcloud secrets create mailchimp-server-prefix --data-file=- --project=$PROJECT_ID
+fi
+
+# Mailchimp List ID
+if gcloud secrets describe mailchimp-list-id --project=$PROJECT_ID &> /dev/null; then
+    echo "Updating Mailchimp list ID secret..."
+    echo -n "$MAILCHIMP_LIST_ID" | gcloud secrets versions add mailchimp-list-id --data-file=- --project=$PROJECT_ID
+else
+    echo "Creating Mailchimp list ID secret..."
+    echo -n "$MAILCHIMP_LIST_ID" | gcloud secrets create mailchimp-list-id --data-file=- --project=$PROJECT_ID
+fi
+
+# Firebase API Key
+if gcloud secrets describe firebase-api-key --project=$PROJECT_ID &> /dev/null; then
+    echo "Updating Firebase API key secret..."
+    echo -n "$FIREBASE_API_KEY" | gcloud secrets versions add firebase-api-key --data-file=- --project=$PROJECT_ID
+else
+    echo "Creating Firebase API key secret..."
+    echo -n "$FIREBASE_API_KEY" | gcloud secrets create firebase-api-key --data-file=- --project=$PROJECT_ID
+fi
+
+# Grant App Engine access to secrets
+echo "🔑 Granting App Engine access to secrets..."
+PROJECT_NUMBER=$(gcloud projects describe $PROJECT_ID --format='value(projectNumber)')
+gcloud secrets add-iam-policy-binding mailchimp-api-key --member="serviceAccount:$PROJECT_NUMBER@appspot.gserviceaccount.com" --role="roles/secretmanager.secretAccessor" --project=$PROJECT_ID
+gcloud secrets add-iam-policy-binding mailchimp-server-prefix --member="serviceAccount:$PROJECT_NUMBER@appspot.gserviceaccount.com" --role="roles/secretmanager.secretAccessor" --project=$PROJECT_ID
+gcloud secrets add-iam-policy-binding mailchimp-list-id --member="serviceAccount:$PROJECT_NUMBER@appspot.gserviceaccount.com" --role="roles/secretmanager.secretAccessor" --project=$PROJECT_ID
+gcloud secrets add-iam-policy-binding firebase-api-key --member="serviceAccount:$PROJECT_NUMBER@appspot.gserviceaccount.com" --role="roles/secretmanager.secretAccessor" --project=$PROJECT_ID
+
 # Deploy to App Engine
 echo "🚀 Deploying to App Engine..."
-gcloud app deploy --quiet
+gcloud app deploy --quiet --project=$PROJECT_ID
 
 # Build and deploy static assets to Cloud Storage
 echo "📦 Building and deploying static assets..."
@@ -66,8 +135,17 @@ gsutil -m rsync -r -d build/ gs://$BUCKET_NAME/
 echo "🌐 Setting public access..."
 gsutil -m acl ch -R public-read gs://$BUCKET_NAME/**
 
+# Set up Cloud CDN (optional)
+echo "🌐 Setting up Cloud CDN..."
+if ! gcloud compute url-maps describe letz-pocket-cdn --project=$PROJECT_ID &> /dev/null; then
+    echo "Creating CDN..."
+    gcloud compute url-maps create letz-pocket-cdn --default-service_BUCKET=gs://$BUCKET_NAME --project=$PROJECT_ID
+    gcloud compute target-http-proxies create letz-pocket-http-proxy --url-map=letz-pocket-cdn --project=$PROJECT_ID
+    gcloud compute forwarding-rules create letz-pocket-http-rule --address=0.0.0.0 --target-http-proxy=letz-pocket-http-proxy --port-range=80 --project=$PROJECT_ID
+fi
+
 # Get the App Engine URL
-APP_URL=$(gcloud app describe --format="value(defaultHostname)")
+APP_URL=$(gcloud app describe --format="value(defaultHostname)" --project=$PROJECT_ID)
 BUCKET_URL="https://storage.googleapis.com/$BUCKET_NAME/index.html"
 
 echo ""
@@ -77,13 +155,25 @@ echo "🌐 Application URLs:"
 echo "   App Engine: https://$APP_URL"
 echo "   Cloud Storage: $BUCKET_URL"
 echo ""
-echo "🔧 Next steps:"
-echo "   1. Configure your environment variables in App Engine"
-echo "   2. Set up your Mailchimp API keys"
+echo "� Secrets created in Secret Manager:"
+echo "   - mailchimp-api-key"
+echo "   - mailchimp-server-prefix"
+echo "   - mailchimp-list-id"
+echo "   - firebase-api-key"
+echo ""
+echo "�🔧 Next steps:"
+echo "   1. Update your environment variables in the App Engine console"
+echo "   2. Test the application functionality"
 echo "   3. Configure your custom domain if needed"
+echo "   4. Set up monitoring and alerts"
 echo ""
 echo "📊 Monitor your deployment:"
-echo "   gcloud app logs tail -s default"
-echo "   gcloud app browse"
+echo "   gcloud app logs tail -s default --project=$PROJECT_ID"
+echo "   gcloud app browse --project=$PROJECT_ID"
 echo ""
 echo "🎯 Your LetzPocket application is now live!"
+echo ""
+echo "⚠️  IMPORTANT:"
+echo "   - Make sure to update the configuration variables at the top of this script"
+echo "   - Test all functionality including Mailchimp integration"
+echo "   - Monitor costs in Google Cloud Console"
