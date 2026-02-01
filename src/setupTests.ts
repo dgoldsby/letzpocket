@@ -5,9 +5,9 @@
 import '@testing-library/jest-dom';
 
 // Global test utilities
-const mockMutationObserver = jest.fn().mockImplementation((callback: any) => ({
+const mockMutationObserver = jest.fn().mockImplementation(() => ({
   disconnect: jest.fn(),
-  observe: jest.fn((element: any, initObject: any) => {}),
+  observe: jest.fn(),
   takeRecords: jest.fn(() => [])
 }));
 
