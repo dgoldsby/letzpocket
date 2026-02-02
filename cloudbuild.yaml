@@ -1,16 +1,16 @@
 steps:
   # Install dependencies
-  - name: 'Install dependencies'
+  - name: 'node:18-alpine'
     entrypoint: 'npm'
     args: ['install']
     
   # Build the React app
-  - name: 'Build React app'
+  - name: 'node:18-alpine'
     entrypoint: 'npm'
     args: ['run', 'build']
     
   # Deploy to Cloud Storage
-  - name: 'Deploy to Cloud Storage'
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'gsutil'
     args:
       - '-m'
@@ -20,39 +20,20 @@ steps:
       - 'build/'
       - 'gs://letz-pocket-website'
     
-  # Set public access
-  - name: 'Make files public'
+  # Set public access using iam
+  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'gsutil'
     args:
-      - '-m'
-      - 'acl'
+      - 'iam'
       - 'ch'
-      - '-R'
-      - 'public-read'
-      - 'gs://letz-pocket-website/**'
-    
-  # Invalidate CDN cache
-  - name: 'Invalidate CDN cache'
-    entrypoint: 'gcloud'
-    args:
-      - 'compute'
-      - 'url-maps'
-      - 'invalidate-cdn-cache'
-      - 'letz-pocket-cdn'
-      - '--path'
-      - '/*'
+      - 'allUsers:objectViewer'
+      - 'gs://letz-pocket-website'
 
 # Configure the build
 options:
   logging: CLOUD_LOGGING_ONLY
   machineType: 'E2_HIGHCPU_8'
   diskSizeGb: 100
-
-# Substitutions
-substitutions:
-  _PROJECT_ID: 'letzpocket-site'
-  _BUCKET_NAME: 'letz-pocket-website'
-  _CDN_NAME: 'letz-pocket-cdn'
 
 tags:
   - 'frontend'
