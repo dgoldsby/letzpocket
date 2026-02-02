@@ -9,6 +9,7 @@ import PriceEstimator from './components/PriceEstimator';
 import Properties from './components/Properties';
 import LandingPage from './components/LandingPage';
 import { LoginModal } from './components/LoginModal';
+import { AdminPanel } from './components/AdminPanel';
 
 function AppContent() {
   const { user, loading, isAuthenticated } = useAuth();
@@ -42,6 +43,8 @@ function AppContent() {
         return <PriceEstimator />;
       case 'properties':
         return <Properties />;
+      case 'admin':
+        return <AdminPanel />;
       default:
         return <Dashboard onPageChange={setCurrentPage} />;
     }

@@ -1,5 +1,9 @@
 const functions = require('firebase-functions');
 const fetch = require('node-fetch');
+const admin = require('firebase-admin');
+
+// Initialize Firebase Admin SDK
+admin.initializeApp();
 
 // Mailchimp configuration - use environment variables
 const MAILCHIMP_API_KEY = process.env.MAILCHIMP_API_KEY;
@@ -102,7 +106,92 @@ exports.health = functions.https.onRequest((req, res) => {
   });
 });
 
-// OpenAI chat completion endpoint
+// Update user roles (admin only)
+exports.updateUserRole = functions.https.onCall(async (data, context) => {
+  // Check if caller is admin
+  if (!context.auth) {
+    throw new functions.https.HttpsError('unauthenticated', 'Authentication required');
+  }
+
+  const callerUid = context.auth.uid;
+  const callerDoc = await admin.firestore().collection('users').doc(callerUid).get();
+  
+  if (!callerDoc.exists) {
+    throw new functions.https.HttpsError('not-found', 'User not found');
+  }
+
+  const callerData = callerDoc.data();
+  if (!callerData.roles.includes('ADMINISTRATOR')) {
+    throw new functions.https.HttpsError('permission-denied', 'Admin access required');
+  }
+
+  // Update target user roles
+  const { targetUserId, roles, activeRole } = data;
+  
+  if (!targetUserId || !roles || !Array.isArray(roles)) {
+    throw new functions.https.HttpsError('invalid-argument', 'Invalid input');
+  }
+
+  try {
+    await admin.firestore().collection('users').doc(targetUserId).update({
+      roles: roles,
+      activeRole: activeRole || roles[0],
+      updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+    return { success: true, message: 'User roles updated successfully' };
+  } catch (error) {
+    console.error('Error updating user roles:', error);
+    throw new functions.https.HttpsError('internal', 'Failed to update user roles');
+  }
+});
+
+// Get user by email for admin lookup
+exports.getUserByEmail = functions.https.onCall(async (data, context) => {
+  // Check if caller is admin
+  if (!context.auth) {
+    throw new functions.https.HttpsError('unauthenticated', 'Authentication required');
+  }
+
+  const callerUid = context.auth.uid;
+  const callerDoc = await admin.firestore().collection('users').doc(callerUid).get();
+  
+  if (!callerDoc.exists) {
+    throw new functions.https.HttpsError('not-found', 'User not found');
+  }
+
+  const callerData = callerDoc.data();
+  if (!callerData.roles.includes('ADMINISTRATOR')) {
+    throw new functions.https.HttpsError('permission-denied', 'Admin access required');
+  }
+
+  const { email } = data;
+  
+  if (!email) {
+    throw new functions.https.HttpsError('invalid-argument', 'Email is required');
+  }
+
+  try {
+    const usersSnapshot = await admin.firestore()
+      .collection('users')
+      .where('email', '==', email)
+      .limit(1)
+      .get();
+
+    if (usersSnapshot.empty) {
+      throw new functions.https.HttpsError('not-found', 'User not found');
+    }
+
+    const userDoc = usersSnapshot.docs[0];
+    return {
+      uid: userDoc.id,
+      ...userDoc.data()
+    };
+  } catch (error) {
+    console.error('Error getting user by email:', error);
+    throw new functions.https.HttpsError('internal', 'Failed to get user');
+  }
+});
 exports.chat = functions.https.onRequest(async (req, res) => {
   // Set CORS headers for all requests
   res.set('Access-Control-Allow-Origin', '*');
