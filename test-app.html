@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>LetzPocket Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 50px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        button {
+            padding: 10px 20px;
+            margin: 10px;
+            border: none;
+            border-radius: 5px;
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 LetzPocket App Test</h1>
+        <p>This page tests if the React app bundle loads correctly.</p>
+        
+        <button onclick="testBundle()">Test Bundle Loading</button>
+        <button onclick="testReact()">Test React Components</button>
+        <button onclick="goToApp()">Go to Main App</button>
+        
+        <div id="results"></div>
+    </div>
+
+    <script>
+        function showResult(message, type) {
+            const results = document.getElementById('results');
+            results.innerHTML = `<div style="padding: 15px; margin: 10px 0; border-radius: 5px; background: ${type === 'success' ? '#d4edda' : '#f8d7da'}; color: ${type === 'success' ? '#155724' : '#721c24'}">${message}</div>`;
+        }
+
+        function testBundle() {
+            fetch('/static/js/bundle.js')
+                .then(response => {
+                    if (response.ok) {
+                        showResult('✅ Bundle loads successfully!', 'success');
+                    } else {
+                        showResult('❌ Bundle failed to load', 'error');
+                    }
+                })
+                .catch(error => {
+                    showResult('❌ Bundle loading error: ' + error.message, 'error');
+                });
+        }
+
+        function testReact() {
+            // Try to access the React app
+            fetch('/')
+                .then(response => response.text())
+                .then(html => {
+                    if (html.includes('letzpocket') || html.includes('React')) {
+                        showResult('✅ React app content detected', 'success');
+                    } else {
+                        showResult('❌ React app content not found', 'error');
+                    }
+                })
+                .catch(error => {
+                    showResult('❌ Error checking React app: ' + error.message, 'error');
+                });
+        }
+
+        function goToApp() {
+            window.location.href = '/landing';
+        }
+
+        // Auto-test on load
+        window.onload = function() {
+            showResult('Test page loaded successfully. Try the buttons above.', 'success');
+        };
+    </script>
+</body>
+</html>

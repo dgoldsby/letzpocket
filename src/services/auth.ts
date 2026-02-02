@@ -39,7 +39,7 @@ export class AuthService {
   }
 
   // Google sign-in
-  async signInWithGoogle(): Promise<UserProfile> {
+  async signInWithGoogle(): Promise<UserProfile | { needsRoleCollection: true; user: UserProfile }> {
     try {
       const auth = getAuth();
       const provider = new GoogleAuthProvider();
@@ -51,10 +51,16 @@ export class AuthService {
       let userProfile = await this.getUserProfile(firebaseUser.uid);
       
       if (!userProfile) {
-        // Create new user profile for Google sign-in
+        // Create new user profile for Google sign-in (without roles initially)
         userProfile = await this.createGoogleUserProfile(firebaseUser);
+        // Return special status to trigger role collection modal
+        return { needsRoleCollection: true, user: userProfile };
       } else {
-        // Update last login
+        // Check if user has roles
+        if (!userProfile.roles || userProfile.roles.length === 0) {
+          return { needsRoleCollection: true, user: userProfile };
+        }
+        // Update last login for existing user with roles
         await this.updateLastLogin(firebaseUser.uid);
       }
 
@@ -75,8 +81,8 @@ export class AuthService {
       uid: firebaseUser.uid,
       email: firebaseUser.email || '',
       displayName: name,
-      roles: ['TENANT'], // Default role for Google sign-in (can be changed later)
-      activeRole: 'TENANT',
+      roles: [], // No roles initially - will be collected in modal
+      activeRole: 'TENANT', // Will be updated when roles are selected
       profile: {
         firstName,
         lastName,
@@ -106,14 +112,19 @@ export class AuthService {
 
       const firebaseUser = userCredential.user;
       
-      // Update last login
-      await this.updateLastLogin(firebaseUser.uid);
-
       // Get user profile
-      const userProfile = await this.getUserProfile(firebaseUser.uid);
+      let userProfile = await this.getUserProfile(firebaseUser.uid);
       
+      // If profile doesn't exist, create one
       if (!userProfile) {
-        throw new Error('User profile not found');
+        userProfile = await this.createProfileFromAuth(firebaseUser);
+      } else {
+        // Update last login for existing user
+        await this.updateLastLogin(firebaseUser.uid);
+      }
+
+      if (!userProfile) {
+        throw new Error('Failed to create or retrieve user profile');
       }
 
       return userProfile;
@@ -177,6 +188,20 @@ export class AuthService {
   async logout(): Promise<void> {
     try {
       await signOut(this.auth);
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  // Update user roles (for Google sign-in role collection)
+  async updateUserRoles(uid: string, roles: UserRole[]): Promise<void> {
+    try {
+      const userRef = doc(firestore, 'users', uid);
+      await updateDoc(userRef, {
+        roles: roles,
+        activeRole: roles[0], // Set first role as active
+        lastLogin: serverTimestamp()
+      });
     } catch (error) {
       throw this.handleError(error);
     }
@@ -254,6 +279,37 @@ export class AuthService {
       }
       throw this.handleError(error);
     }
+  }
+
+  // Create user profile from Firebase Auth user
+  private async createProfileFromAuth(firebaseUser: FirebaseUser): Promise<UserProfile> {
+    const adminOverride = localStorage.getItem('adminOverride');
+    const isAdmin = adminOverride === firebaseUser.email;
+    
+    const userProfile: UserProfile = {
+      uid: firebaseUser.uid,
+      email: firebaseUser.email || '',
+      displayName: firebaseUser.displayName || firebaseUser.email || '',
+      roles: isAdmin ? ['TENANT', 'LANDLORD', 'ADMINISTRATOR'] : ['TENANT'],
+      activeRole: isAdmin ? 'ADMINISTRATOR' : 'TENANT',
+      profile: {
+        firstName: firebaseUser.displayName?.split(' ')[0] || '',
+        lastName: firebaseUser.displayName?.split(' ').slice(1).join(' ') || '',
+        phone: '',
+        company: ''
+      },
+      preferences: {
+        notifications: true,
+        currency: 'GBP',
+        timezone: 'Europe/London'
+      },
+      createdAt: new Date(),
+      lastLogin: new Date(),
+      emailVerified: firebaseUser.emailVerified || false
+    };
+
+    await this.createUserProfile(firebaseUser.uid, userProfile);
+    return userProfile;
   }
 
   // Check if user has specific role

@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/
 import { Checkbox } from './ui/checkbox';
 import { useAuth } from '../contexts/AuthContext';
 import { UserRole, RegisterData } from '../types/auth';
+import { RoleCollectionModal } from './RoleCollectionModal';
 
 interface LoginModalProps {
   isOpen: boolean;
@@ -17,6 +18,8 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
   const { login, register, signInWithGoogle, loading, error, isAuthenticated } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
+  const [showRoleCollection, setShowRoleCollection] = useState(false);
+  const [pendingUser, setPendingUser] = useState<any>(null);
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -36,11 +39,24 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
 
   const handleGoogleSignIn = async () => {
     try {
-      await signInWithGoogle();
-      onClose();
+      const result = await signInWithGoogle();
+      
+      // Check if role collection is needed
+      if (result && 'needsRoleCollection' in result) {
+        setPendingUser(result.user);
+        setShowRoleCollection(true);
+      } else {
+        onClose();
+      }
     } catch (error) {
       // Error is handled by AuthContext - don't close modal on error
     }
+  };
+
+  const handleRoleCollectionComplete = () => {
+    setShowRoleCollection(false);
+    setPendingUser(null);
+    onClose();
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -246,7 +262,8 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                   <div className="space-y-2">
                     {[
                       { value: 'TENANT' as UserRole, label: 'A tenant', description: 'I rent properties' },
-                      { value: 'LANDLORD' as UserRole, label: 'A landlord', description: 'I own/let properties' }
+                      { value: 'LANDLORD' as UserRole, label: 'A landlord', description: 'I own/let properties' },
+                      { value: 'ADMINISTRATOR' as UserRole, label: 'An administrator', description: 'I manage the system' }
                     ].map(role => (
                       <div key={role.value} className="flex items-start space-x-2">
                         <Checkbox
@@ -333,6 +350,14 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
           </div>
         </CardContent>
       </Card>
+      
+      {pendingUser && (
+        <RoleCollectionModal
+          isOpen={showRoleCollection}
+          onClose={handleRoleCollectionComplete}
+          user={pendingUser}
+        />
+      )}
     </div>
   );
 }

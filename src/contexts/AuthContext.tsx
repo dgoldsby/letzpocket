@@ -5,9 +5,10 @@ import { authService } from '../services/auth';
 interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<UserProfile>;
   register: (data: any) => Promise<UserProfile>;
-  signInWithGoogle: () => Promise<UserProfile>;
+  signInWithGoogle: () => Promise<UserProfile | { needsRoleCollection: true; user: UserProfile }>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  updateUserRoles: (uid: string, roles: any[]) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -92,17 +93,30 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
-  const signInWithGoogle = async (): Promise<UserProfile> => {
+  const signInWithGoogle = async (): Promise<UserProfile | { needsRoleCollection: true; user: UserProfile }> => {
     try {
       setAuthState(prev => ({ ...prev, loading: true, error: null }));
-      const user = await authService.signInWithGoogle();
+      const result = await authService.signInWithGoogle();
+      
+      // Check if role collection is needed
+      if ('needsRoleCollection' in result) {
+        setAuthState({
+          user: result.user,
+          loading: false,
+          error: null,
+          isAuthenticated: true
+        });
+        return result;
+      }
+      
+      // Normal sign-in flow
       setAuthState({
-        user,
+        user: result,
         loading: false,
         error: null,
         isAuthenticated: true
       });
-      return user;
+      return result;
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Google sign-in failed';
       setAuthState(prev => ({
@@ -151,13 +165,31 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
+  const updateUserRoles = async (uid: string, roles: any[]): Promise<void> => {
+    try {
+      await authService.updateUserRoles(uid, roles);
+      // Refresh the user profile to get the updated roles
+      const refreshedUser = await authService.refreshUserProfile(uid);
+      if (refreshedUser) {
+        setAuthState(prev => ({
+          ...prev,
+          user: refreshedUser
+        }));
+      }
+    } catch (error) {
+      console.error('Failed to update user roles:', error);
+      throw error;
+    }
+  };
+
   const value: AuthContextType = {
     ...authState,
     login,
     register,
     signInWithGoogle,
     logout,
-    refreshUser
+    refreshUser,
+    updateUserRoles
   };
 
   return (
