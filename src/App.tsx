@@ -1,6 +1,6 @@
 import React from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import { RoleProvider } from './contexts/RoleContext';
+import { RoleProvider, ROLE_CHANGE_EVENT } from './contexts/RoleContext';
 import Navigation from './components/Navigation';
 import Dashboard from './components/Dashboard';
 import AgreementChecker from './components/AgreementChecker';
@@ -15,6 +15,30 @@ function AppContent() {
   const { user, loading, isAuthenticated, logout } = useAuth();
   const [currentPage, setCurrentPage] = React.useState('landing');
   const [showLoginModal, setShowLoginModal] = React.useState(false);
+
+  // Handle role changes
+  React.useEffect(() => {
+    const handleRoleChange = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const { newRole } = customEvent.detail;
+      console.log('AppContent: Role changed to', newRole);
+      
+      // Navigate based on new role
+      if (newRole === 'ADMINISTRATOR') {
+        setCurrentPage('admin');
+        console.log('AppContent: Navigating to admin page');
+      } else if (newRole === 'LANDLORD' || newRole === 'TENANT') {
+        setCurrentPage('dashboard');
+        console.log('AppContent: Navigating to dashboard');
+      }
+    };
+
+    window.addEventListener(ROLE_CHANGE_EVENT, handleRoleChange);
+    
+    return () => {
+      window.removeEventListener(ROLE_CHANGE_EVENT, handleRoleChange);
+    };
+  }, []);
 
   const handleLoginSuccess = () => {
     setCurrentPage('dashboard');

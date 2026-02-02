@@ -9,34 +9,36 @@ interface RoleProviderProps {
   user: UserProfile | null;
 }
 
+// Custom event for role changes
+export const ROLE_CHANGE_EVENT = 'roleChange';
+
 export function RoleProvider({ children, user }: RoleProviderProps) {
   const [activeRole, setActiveRoleState] = useState<UserRole | null>(null);
 
   // Set active role when user changes
   useEffect(() => {
-    console.log('RoleContext: User changed', { 
-      user: user ? { uid: user.uid, email: user.email, roles: user.roles, activeRole: user.activeRole } : null 
-    });
-    
     if (user && user.roles.length > 0) {
       setActiveRoleState(user.activeRole);
-      console.log('RoleContext: Set active role to', user.activeRole);
     } else {
       setActiveRoleState(null);
-      console.log('RoleContext: Cleared active role');
     }
   }, [user]);
 
   const setActiveRole = async (role: UserRole) => {
     if (!user) return;
-
-    console.log('RoleContext: Switching role from', activeRole, 'to', role);
     
     try {
       // Update in Firestore
       await authService.switchActiveRole(user.uid, role);
       // Update local state
       setActiveRoleState(role);
+      
+      // Emit custom event for role change
+      const event = new CustomEvent(ROLE_CHANGE_EVENT, {
+        detail: { newRole: role, user }
+      });
+      window.dispatchEvent(event);
+      
       console.log('RoleContext: Successfully switched to', role);
     } catch (error) {
       console.error('RoleContext: Failed to switch role:', error);
