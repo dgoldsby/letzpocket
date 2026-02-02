@@ -187,7 +187,37 @@ export function AdminPanel() {
   const { user } = useAuth();
   const { hasPermission, activeRole } = useRole();
 
+  console.log('AdminPanel Debug:', { 
+    user: user ? { uid: user.uid, email: user.email, roles: user.roles, activeRole: user.activeRole } : null,
+    hasPermission: hasPermission('canManageAllUsers'),
+    hasSystemSettings: hasPermission('canAccessSystemSettings'),
+    activeRole 
+  });
+
   const canAccessAdmin = hasPermission('canManageAllUsers') || hasPermission('canAccessSystemSettings');
+
+  console.log('AdminPanel Access Check:', { canAccessAdmin });
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <Card className="max-w-md">
+          <CardHeader className="text-center">
+            <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+            <CardTitle>Not Authenticated</CardTitle>
+            <CardDescription>
+              Please log in to access the admin panel.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button className="w-full" onClick={() => window.location.href = '/'}>
+              Go to Login
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   if (!canAccessAdmin) {
     return (
@@ -198,6 +228,10 @@ export function AdminPanel() {
             <CardTitle>Access Denied</CardTitle>
             <CardDescription>
               You don't have permission to access the admin panel.
+              <br />
+              Current role: {activeRole}
+              <br />
+              Roles: {user.roles.join(', ')}
             </CardDescription>
           </CardHeader>
           <CardContent>

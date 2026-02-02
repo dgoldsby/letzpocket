@@ -14,33 +14,46 @@ export function RoleProvider({ children, user }: RoleProviderProps) {
 
   // Set active role when user changes
   useEffect(() => {
+    console.log('RoleContext: User changed', { 
+      user: user ? { uid: user.uid, email: user.email, roles: user.roles, activeRole: user.activeRole } : null 
+    });
+    
     if (user && user.roles.length > 0) {
       setActiveRoleState(user.activeRole);
+      console.log('RoleContext: Set active role to', user.activeRole);
     } else {
       setActiveRoleState(null);
+      console.log('RoleContext: Cleared active role');
     }
   }, [user]);
 
   const setActiveRole = async (role: UserRole) => {
     if (!user) return;
 
+    console.log('RoleContext: Switching role from', activeRole, 'to', role);
+    
     try {
       // Update in Firestore
       await authService.switchActiveRole(user.uid, role);
       // Update local state
       setActiveRoleState(role);
+      console.log('RoleContext: Successfully switched to', role);
     } catch (error) {
-      console.error('Failed to switch role:', error);
+      console.error('RoleContext: Failed to switch role:', error);
       throw error;
     }
   };
 
   const hasRole = (role: UserRole): boolean => {
-    return user ? authService.hasRole(user.roles, role) : false;
+    const result = user ? authService.hasRole(user.roles, role) : false;
+    console.log('RoleContext: hasRole', role, result);
+    return result;
   };
 
   const hasPermission = (permission: string): boolean => {
-    return user ? authService.hasPermission(user.roles, permission as any) : false;
+    const result = user ? authService.hasPermission(user.roles, permission as any) : false;
+    console.log('RoleContext: hasPermission', permission, result);
+    return result;
   };
 
   const availableRoles = user ? user.roles : [];
@@ -52,6 +65,12 @@ export function RoleProvider({ children, user }: RoleProviderProps) {
     hasRole,
     hasPermission
   };
+
+  console.log('RoleContext: Context value', { 
+    activeRole: activeRole!, 
+    availableRoles, 
+    hasPermission: (perm: string) => hasPermission(perm) 
+  });
 
   return (
     <RoleContextProvider.Provider value={contextValue}>
