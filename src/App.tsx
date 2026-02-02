@@ -70,19 +70,19 @@ function AppContent() {
   return (
     <div className="min-h-screen bg-gray-50">
       {isAuthenticated && user && (
-        <>
-          <Navigation 
-            currentPage={currentPage} 
-            onPageChange={setCurrentPage}
-            user={user}
-            onLogout={handleLogout}
-          />
-          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-            <RoleProvider user={user}>
+        <RoleProvider user={user}>
+          <>
+            <Navigation 
+              currentPage={currentPage} 
+              onPageChange={setCurrentPage}
+              user={user}
+              onLogout={handleLogout}
+            />
+            <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
               {renderCurrentPage()}
-            </RoleProvider>
-          </main>
-        </>
+            </main>
+          </>
+        </RoleProvider>
       )}
       
       {!isAuthenticated && (
