@@ -34,3 +34,7 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Development tools (keep in git for development but exclude from production builds)
+/dev-tools/
+!dev-tools/.gitkeep
