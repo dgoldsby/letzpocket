@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Shield, Users, Settings, FileText, Building, ChevronRight, AlertCircle, CheckCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { Shield, Users, Settings, FileText, Building, ChevronRight, AlertCircle, CheckCircle, ArrowLeft } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Input } from './ui/input';
@@ -8,6 +8,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useRole } from '../contexts/RoleContext';
 import { UserRole } from '../types/auth';
 import { adminService } from '../services/admin';
+import { ContentManagement } from './ContentManagement';
 
 interface UserManagementProps {
   onClose: () => void;
@@ -185,18 +186,21 @@ export function UserManagement({ onClose }: UserManagementProps) {
 
 export function AdminPanel() {
   const { user } = useAuth();
-  const { hasPermission, activeRole } = useRole();
+  const { hasPermission, activeRole, availableRoles, setActiveRole } = useRole();
+  const [currentView, setCurrentView] = useState<'dashboard' | 'content' | 'users'>('dashboard');
 
   console.log('AdminPanel Debug:', { 
     user: user ? { uid: user.uid, email: user.email, roles: user.roles, activeRole: user.activeRole } : null,
     hasPermission: hasPermission('canManageAllUsers'),
     hasSystemSettings: hasPermission('canAccessSystemSettings'),
-    activeRole 
+    activeRole,
+    availableRoles
   });
 
   const canAccessAdmin = hasPermission('canManageAllUsers') || hasPermission('canAccessSystemSettings');
+  const isLandlord = user?.roles.includes('LANDLORD');
 
-  console.log('AdminPanel Access Check:', { canAccessAdmin });
+  console.log('AdminPanel Access Check:', { canAccessAdmin, isLandlord });
 
   if (!user) {
     return (
@@ -244,76 +248,130 @@ export function AdminPanel() {
     );
   }
 
+  const renderContent = () => {
+    switch (currentView) {
+      case 'content':
+        return (
+          <div>
+            <div className="mb-6">
+              <Button 
+                variant="outline" 
+                onClick={() => setCurrentView('dashboard')}
+                className="mb-4"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Admin Dashboard
+              </Button>
+              <ContentManagement />
+            </div>
+          </div>
+        );
+      case 'users':
+        return (
+          <div>
+            <div className="mb-6">
+              <Button 
+                variant="outline" 
+                onClick={() => setCurrentView('dashboard')}
+                className="mb-4"
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Admin Dashboard
+              </Button>
+              <UserManagement onClose={() => setCurrentView('dashboard')} />
+            </div>
+          </div>
+        );
+      default:
+        return (
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="mb-8">
+              <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
+              <p className="text-gray-600 mt-2">
+                Manage content and users
+              </p>
+            </div>
+
+            {/* Role Switcher for Admin/Landlord */}
+            {isLandlord && availableRoles.length > 1 && (
+              <Card className="mb-6">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Building className="h-5 w-5" />
+                    Role Switcher
+                  </CardTitle>
+                  <CardDescription>
+                    Switch between Admin and Landlord views
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex gap-2">
+                    {availableRoles.map((role) => (
+                      <Button
+                        key={role}
+                        variant={activeRole === role ? "default" : "outline"}
+                        onClick={() => setActiveRole(role)}
+                      >
+                        {role}
+                        {activeRole === role && " (Current)"}
+                      </Button>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <FileText className="h-5 w-5" />
+                    Content Management
+                  </CardTitle>
+                  <CardDescription>
+                    Edit landing page sections and content
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button 
+                    className="w-full"
+                    onClick={() => setCurrentView('content')}
+                  >
+                    Manage Content
+                    <ChevronRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Users className="h-5 w-5" />
+                    User Management
+                  </CardTitle>
+                  <CardDescription>
+                    Manage user roles and permissions
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button 
+                    className="w-full"
+                    onClick={() => setCurrentView('users')}
+                  >
+                    Manage Users
+                    <ChevronRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        );
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">Admin Panel</h1>
-          <p className="text-gray-600 mt-2">
-            Manage users, roles, and system settings
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                User Management
-              </CardTitle>
-              <CardDescription>
-                Manage user roles and permissions
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button className="w-full">
-                Manage Users
-                <ChevronRight className="ml-2 h-4 w-4" />
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer opacity-50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <FileText className="h-5 w-5" />
-                Content Management
-              </CardTitle>
-              <CardDescription>
-                Manage website content and pages
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button className="w-full" disabled>
-                Coming Soon
-                <ChevronRight className="ml-2 h-4 w-4" />
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="hover:shadow-lg transition-shadow cursor-pointer opacity-50">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Settings className="h-5 w-5" />
-                System Settings
-              </CardTitle>
-              <CardDescription>
-                Configure system-wide settings
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button className="w-full" disabled>
-                Coming Soon
-                <ChevronRight className="ml-2 h-4 w-4" />
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
-
-        <div className="mt-8">
-          <UserManagement onClose={() => {}} />
-        </div>
-      </div>
+      {renderContent()}
     </div>
   );
 }
