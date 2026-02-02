@@ -207,10 +207,50 @@ export class AuthService {
       return null;
     } catch (error) {
       console.error('Error getting user profile:', error);
-      // If Firestore is offline, return null instead of throwing
+      // If Firestore is offline, create a fallback profile from auth
       if (error instanceof Error && error.message.includes('offline')) {
-        console.warn('Firestore is offline, returning null for user profile');
-        return null;
+        console.warn('Firestore is offline, creating fallback user profile');
+        try {
+          const auth = getAuth();
+          const firebaseUser = auth.currentUser;
+          
+          if (firebaseUser) {
+            // Check for admin override in localStorage (for testing)
+            const adminOverride = localStorage.getItem('adminOverride');
+            const isAdmin = adminOverride === firebaseUser.email;
+            
+            // Create minimal profile from Firebase Auth user
+            const fallbackProfile: UserProfile = {
+              uid: firebaseUser.uid,
+              email: firebaseUser.email || '',
+              displayName: firebaseUser.displayName || firebaseUser.email || '',
+              roles: isAdmin ? ['TENANT', 'LANDLORD', 'ADMINISTRATOR'] : ['TENANT'],
+              activeRole: isAdmin ? 'ADMINISTRATOR' : 'TENANT',
+              profile: {
+                firstName: firebaseUser.displayName?.split(' ')[0] || '',
+                lastName: firebaseUser.displayName?.split(' ').slice(1).join(' ') || '',
+                phone: '',
+                company: ''
+              },
+              preferences: {
+                notifications: true,
+                currency: 'GBP',
+                timezone: 'Europe/London'
+              },
+              createdAt: new Date(),
+              lastLogin: new Date(),
+              emailVerified: firebaseUser.emailVerified || false
+            };
+            
+            console.log('Created fallback profile:', fallbackProfile);
+            if (isAdmin) {
+              console.log('🔓 Admin override detected for:', firebaseUser.email);
+            }
+            return fallbackProfile;
+          }
+        } catch (authError) {
+          console.error('Error creating fallback profile:', authError);
+        }
       }
       throw this.handleError(error);
     }
