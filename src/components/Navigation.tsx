@@ -2,16 +2,12 @@ import React, { useState } from 'react';
 import { Building2, FileText, Calculator, TrendingUp, Home, Menu, X, User, LogOut } from 'lucide-react';
 import { Button } from './ui/button';
 import Logo from './Logo';
+import { UserProfile } from '../types/auth';
 
 interface NavigationProps {
   currentPage: string;
   onPageChange: (page: string) => void;
-  user?: {
-    id: string;
-    email: string;
-    firstName: string;
-    lastName: string;
-  };
+  user?: UserProfile;
   onLogout?: () => void;
 }
 
@@ -57,7 +53,7 @@ const Navigation: React.FC<NavigationProps> = ({ currentPage, onPageChange, user
             <div className="hidden md:flex items-center space-x-4">
               <div className="flex items-center space-x-2 text-sm text-gray-600">
                 <User className="h-4 w-4" />
-                <span>{user.firstName} {user.lastName}</span>
+                <span>{user.profile.firstName} {user.profile.lastName}</span>
               </div>
               <Button variant="outline" size="sm" onClick={onLogout}>
                 <LogOut className="h-4 w-4 mr-2" />
@@ -107,7 +103,7 @@ const Navigation: React.FC<NavigationProps> = ({ currentPage, onPageChange, user
               <div className="border-t pt-2 mt-2">
                 <div className="flex items-center space-x-2 text-sm text-gray-600 px-3 py-2">
                   <User className="h-4 w-4" />
-                  <span>{user.firstName} {user.lastName}</span>
+                  <span>{user.profile.firstName} {user.profile.lastName}</span>
                 </div>
                 <Button
                   variant="outline"

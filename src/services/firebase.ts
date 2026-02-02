@@ -5,12 +5,12 @@ import { getStorage } from 'firebase/storage';
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
-  apiKey: process.env.REACT_APP_FIREBASE_API_KEY || "your-api-key",
-  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN || "your-project.firebaseapp.com",
-  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID || "your-project-id",
-  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET || "your-project.appspot.com",
-  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID || "123456789",
-  appId: process.env.REACT_APP_FIREBASE_APP_ID || "your-app-id"
+  apiKey: "AIzaSyBiANBFBL0K4v36ZSYD_wS7uGdRsQIbC-A",
+  authDomain: "letzpocket-site.firebaseapp.com",
+  projectId: "letzpocket-site",
+  storageBucket: "letzpocket-site.firebasestorage.app",
+  messagingSenderId: "557937099852",
+  appId: "1:557937099852:web:b3dfab6dac35efb51ae0e9"
 };
 
 // Initialize Firebase
