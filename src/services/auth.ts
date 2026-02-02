@@ -23,8 +23,25 @@ import {
   Permission
 } from '../types/auth';
 
+// Role priority order (highest to lowest)
+const ROLE_PRIORITY = {
+  'ADMINISTRATOR': 4,
+  'OPERATOR': 3,
+  'LANDLORD': 2,
+  'TENANT': 1
+} as const;
+
 export class AuthService {
   private auth = getAuth();
+
+  // Get the highest priority role from a list of roles
+  private getHighestPriorityRole(roles: UserRole[]): UserRole {
+    if (roles.length === 0) return 'TENANT';
+    
+    return roles.reduce((highest, current) => {
+      return ROLE_PRIORITY[current] > ROLE_PRIORITY[highest] ? current : highest;
+    });
+  }
 
   // Listen to auth state changes
   onAuthStateChange(callback: (user: UserProfile | null) => void) {
@@ -159,7 +176,7 @@ export class AuthService {
         email: data.email,
         displayName: `${data.firstName} ${data.lastName}`,
         roles: data.roles,
-        activeRole: data.roles[0], // Set first role as active
+        activeRole: this.getHighestPriorityRole(data.roles), // Set highest priority role as active
         profile: {
           firstName: data.firstName,
           lastName: data.lastName,
@@ -199,7 +216,7 @@ export class AuthService {
       const userRef = doc(firestore, 'users', uid);
       await updateDoc(userRef, {
         roles: roles,
-        activeRole: roles[0], // Set first role as active
+        activeRole: this.getHighestPriorityRole(roles), // Set highest priority role as active
         lastLogin: serverTimestamp()
       });
     } catch (error) {
@@ -245,12 +262,13 @@ export class AuthService {
             const isAdmin = adminOverride === firebaseUser.email;
             
             // Create minimal profile from Firebase Auth user
+            const roles: UserRole[] = isAdmin ? ['TENANT', 'LANDLORD', 'ADMINISTRATOR'] : ['TENANT'];
             const fallbackProfile: UserProfile = {
               uid: firebaseUser.uid,
               email: firebaseUser.email || '',
               displayName: firebaseUser.displayName || firebaseUser.email || '',
-              roles: isAdmin ? ['TENANT', 'LANDLORD', 'ADMINISTRATOR'] : ['TENANT'],
-              activeRole: isAdmin ? 'ADMINISTRATOR' : 'TENANT',
+              roles: roles,
+              activeRole: this.getHighestPriorityRole(roles),
               profile: {
                 firstName: firebaseUser.displayName?.split(' ')[0] || '',
                 lastName: firebaseUser.displayName?.split(' ').slice(1).join(' ') || '',
@@ -286,12 +304,14 @@ export class AuthService {
     const adminOverride = localStorage.getItem('adminOverride');
     const isAdmin = adminOverride === firebaseUser.email;
     
+    const roles: UserRole[] = isAdmin ? ['TENANT', 'LANDLORD', 'ADMINISTRATOR'] : ['TENANT'];
+    
     const userProfile: UserProfile = {
       uid: firebaseUser.uid,
       email: firebaseUser.email || '',
       displayName: firebaseUser.displayName || firebaseUser.email || '',
-      roles: isAdmin ? ['TENANT', 'LANDLORD', 'ADMINISTRATOR'] : ['TENANT'],
-      activeRole: isAdmin ? 'ADMINISTRATOR' : 'TENANT',
+      roles: roles,
+      activeRole: this.getHighestPriorityRole(roles),
       profile: {
         firstName: firebaseUser.displayName?.split(' ')[0] || '',
         lastName: firebaseUser.displayName?.split(' ').slice(1).join(' ') || '',
