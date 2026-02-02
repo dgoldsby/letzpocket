@@ -198,9 +198,9 @@ export function AdminPanel() {
   });
 
   const canAccessAdmin = hasPermission('canManageAllUsers') || hasPermission('canAccessSystemSettings');
-  const isLandlord = user?.roles.includes('LANDLORD');
+  const hasMultipleRoles = availableRoles.length > 1;
 
-  console.log('AdminPanel Access Check:', { canAccessAdmin, isLandlord });
+  console.log('AdminPanel Access Check:', { canAccessAdmin, hasMultipleRoles, availableRoles });
 
   if (!user) {
     return (
@@ -292,30 +292,66 @@ export function AdminPanel() {
               </p>
             </div>
 
-            {/* Role Switcher for Admin/Landlord */}
-            {isLandlord && availableRoles.length > 1 && (
+            {/* Role Switcher for users with multiple roles */}
+            {hasMultipleRoles && (
               <Card className="mb-6">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <Building className="h-5 w-5" />
+                    <Settings className="h-5 w-5" />
                     Role Switcher
                   </CardTitle>
                   <CardDescription>
-                    Switch between Admin and Landlord views
+                    Switch between your different roles
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <div className="flex gap-2">
-                    {availableRoles.map((role) => (
-                      <Button
-                        key={role}
-                        variant={activeRole === role ? "default" : "outline"}
-                        onClick={() => setActiveRole(role)}
-                      >
-                        {role}
-                        {activeRole === role && " (Current)"}
-                      </Button>
-                    ))}
+                  <div className="space-y-2">
+                    {availableRoles.map((role) => {
+                      const getRoleIcon = (role: UserRole) => {
+                        switch (role) {
+                          case 'ADMINISTRATOR':
+                            return <Shield className="h-4 w-4" />;
+                          case 'LANDLORD':
+                            return <Building className="h-4 w-4" />;
+                          case 'TENANT':
+                            return <Users className="h-4 w-4" />;
+                          case 'OPERATOR':
+                            return <Settings className="h-4 w-4" />;
+                          default:
+                            return <Users className="h-4 w-4" />;
+                        }
+                      };
+
+                      const getRoleColor = (role: UserRole) => {
+                        switch (role) {
+                          case 'ADMINISTRATOR':
+                            return 'bg-red-100 text-red-800 border-red-200';
+                          case 'LANDLORD':
+                            return 'bg-green-100 text-green-800 border-green-200';
+                          case 'TENANT':
+                            return 'bg-blue-100 text-blue-800 border-blue-200';
+                          case 'OPERATOR':
+                            return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+                          default:
+                            return 'bg-gray-100 text-gray-800 border-gray-200';
+                        }
+                      };
+
+                      return (
+                        <Button
+                          key={role}
+                          variant={activeRole === role ? "default" : "outline"}
+                          onClick={() => setActiveRole(role)}
+                          className={`w-full justify-start ${activeRole === role ? '' : getRoleColor(role)}`}
+                        >
+                          <div className="flex items-center gap-2">
+                            {getRoleIcon(role)}
+                            <span>{role}</span>
+                            {activeRole === role && <span className="ml-auto">(Current)</span>}
+                          </div>
+                        </Button>
+                      );
+                    })}
                   </div>
                 </CardContent>
               </Card>
