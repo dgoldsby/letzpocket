@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Mail, Lock, User, Building, Phone, Eye, EyeOff, AlertCircle } from 'lucide-react';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
@@ -14,7 +14,7 @@ interface LoginModalProps {
 }
 
 export function LoginModal({ isOpen, onClose }: LoginModalProps) {
-  const { login, register, signInWithGoogle, loading, error } = useAuth();
+  const { login, register, signInWithGoogle, loading, error, isAuthenticated } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
@@ -27,12 +27,19 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
     roles: [] as UserRole[]
   });
 
+  // Auto-close modal when authentication succeeds
+  useEffect(() => {
+    if (isAuthenticated && isOpen) {
+      onClose();
+    }
+  }, [isAuthenticated, isOpen, onClose]);
+
   const handleGoogleSignIn = async () => {
     try {
       await signInWithGoogle();
       onClose();
     } catch (error) {
-      // Error is handled by AuthContext
+      // Error is handled by AuthContext - don't close modal on error
     }
   };
 
