@@ -198,19 +198,20 @@ export class AuthService {
   // Get user profile from Firestore
   async getUserProfile(uid: string): Promise<UserProfile | null> {
     try {
-      const userDoc = await getDoc(doc(firestore, 'users', uid));
+      const docRef = doc(firestore, 'users', uid);
+      const docSnap = await getDoc(docRef);
       
-      if (!userDoc.exists()) {
+      if (docSnap.exists()) {
+        return docSnap.data() as UserProfile;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error getting user profile:', error);
+      // If Firestore is offline, return null instead of throwing
+      if (error instanceof Error && error.message.includes('offline')) {
+        console.warn('Firestore is offline, returning null for user profile');
         return null;
       }
-
-      const data = userDoc.data();
-      return {
-        ...data,
-        createdAt: data.createdAt?.toDate(),
-        lastLogin: data.lastLogin?.toDate()
-      } as UserProfile;
-    } catch (error) {
       throw this.handleError(error);
     }
   }

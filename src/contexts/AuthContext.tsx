@@ -25,13 +25,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
   });
 
   useEffect(() => {
-    const unsubscribe = authService.onAuthStateChange((user) => {
-      setAuthState({
-        user,
-        loading: false,
-        error: null,
-        isAuthenticated: !!user
-      });
+    const unsubscribe = authService.onAuthStateChange(async (userProfile) => {
+      if (userProfile) {
+        setAuthState({
+          user: userProfile,
+          loading: false,
+          error: null,
+          isAuthenticated: true
+        });
+      } else {
+        setAuthState({
+          user: null,
+          loading: false,
+          error: null,
+          isAuthenticated: false
+        });
+      }
     });
 
     return unsubscribe;
