@@ -6,7 +6,10 @@ import {
   onAuthStateChanged,
   User as FirebaseUser,
   updateProfile,
-  sendEmailVerification
+  sendEmailVerification,
+  GoogleAuthProvider,
+  signInWithCredential,
+  signInWithPopup
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { firestore } from './firebase';
@@ -35,7 +38,64 @@ export class AuthService {
     });
   }
 
-  // User login
+  // Google sign-in
+  async signInWithGoogle(): Promise<UserProfile> {
+    try {
+      const auth = getAuth();
+      const provider = new GoogleAuthProvider();
+      
+      const result = await signInWithPopup(auth, provider);
+      const firebaseUser = result.user;
+
+      // Check if user exists in Firestore, if not create profile
+      let userProfile = await this.getUserProfile(firebaseUser.uid);
+      
+      if (!userProfile) {
+        // Create new user profile for Google sign-in
+        userProfile = await this.createGoogleUserProfile(firebaseUser);
+      } else {
+        // Update last login
+        await this.updateLastLogin(firebaseUser.uid);
+      }
+
+      return userProfile;
+    } catch (error) {
+      throw this.handleError(error);
+    }
+  }
+
+  // Create user profile for Google sign-in
+  private async createGoogleUserProfile(firebaseUser: FirebaseUser): Promise<UserProfile> {
+    const name = firebaseUser.displayName || '';
+    const nameParts = name.split(' ');
+    const firstName = nameParts[0] || '';
+    const lastName = nameParts.slice(1).join(' ') || '';
+
+    const userProfile: UserProfile = {
+      uid: firebaseUser.uid,
+      email: firebaseUser.email || '',
+      displayName: name,
+      roles: ['TENANT'], // Default role for Google sign-in (can be changed later)
+      activeRole: 'TENANT',
+      profile: {
+        firstName,
+        lastName,
+        phone: '',
+        company: ''
+      },
+      preferences: {
+        notifications: true,
+        currency: 'GBP',
+        timezone: 'Europe/London'
+      },
+      createdAt: new Date(),
+      lastLogin: new Date(),
+      emailVerified: firebaseUser.emailVerified || false
+    };
+
+    await this.createUserProfile(firebaseUser.uid, userProfile);
+    return userProfile;
+  }
   async login(credentials: LoginCredentials): Promise<UserProfile> {
     try {
       const userCredential = await signInWithEmailAndPassword(

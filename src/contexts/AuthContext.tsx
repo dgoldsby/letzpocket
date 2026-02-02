@@ -5,6 +5,7 @@ import { authService } from '../services/auth';
 interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<UserProfile>;
   register: (data: any) => Promise<UserProfile>;
+  signInWithGoogle: () => Promise<UserProfile>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
@@ -82,6 +83,29 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
+  const signInWithGoogle = async (): Promise<UserProfile> => {
+    try {
+      setAuthState(prev => ({ ...prev, loading: true, error: null }));
+      const user = await authService.signInWithGoogle();
+      setAuthState({
+        user,
+        loading: false,
+        error: null,
+        isAuthenticated: true
+      });
+      return user;
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Google sign-in failed';
+      setAuthState(prev => ({
+        ...prev,
+        loading: false,
+        error: errorMessage,
+        isAuthenticated: false
+      }));
+      throw error;
+    }
+  };
+
   const logout = async (): Promise<void> => {
     try {
       setAuthState(prev => ({ ...prev, loading: true }));
@@ -122,6 +146,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     ...authState,
     login,
     register,
+    signInWithGoogle,
     logout,
     refreshUser
   };
