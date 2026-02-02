@@ -224,22 +224,20 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
                 </div>
 
                 <div>
-                  <Label>Select Your Roles</Label>
+                  <Label>Are You:</Label>
                   <p className="text-sm text-gray-600 mb-3">
-                    You can select multiple roles. You'll be able to switch between them seamlessly.
+                    You can select multiple roles
                   </p>
                   <div className="space-y-2">
                     {[
-                      { value: 'TENANT' as UserRole, label: 'Tenant', description: 'I rent properties' },
-                      { value: 'LANDLORD' as UserRole, label: 'Landlord', description: 'I own/let properties' },
-                      { value: 'ADMINISTRATOR' as UserRole, label: 'Administrator', description: 'I manage the system' },
-                      { value: 'OPERATOR' as UserRole, label: 'Operator', description: 'I process documents and workflows' }
+                      { value: 'TENANT' as UserRole, label: 'A tenant', description: 'I rent properties' },
+                      { value: 'LANDLORD' as UserRole, label: 'A landlord', description: 'I own/let properties' }
                     ].map(role => (
                       <div key={role.value} className="flex items-start space-x-2">
                         <Checkbox
                           id={role.value}
                           checked={formData.roles.includes(role.value)}
-                          onCheckedChange={(checked) => handleRoleChange(role.value, checked as boolean)}
+                          onCheckedChange={(checked: boolean) => handleRoleChange(role.value, checked)}
                         />
                         <div className="flex-1">
                           <Label htmlFor={role.value} className="text-sm font-medium">

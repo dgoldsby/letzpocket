@@ -75,25 +75,17 @@ export function RoleSwitcher() {
       </div>
 
       {availableRoles.length > 1 && (
-        <Select value={activeRole} onValueChange={(value) => setActiveRole(value as UserRole)}>
-          <SelectTrigger className="w-32">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {availableRoles.map((role) => {
-              const roleConfig = ROLE_CONFIG[role];
-              const RoleIcon = roleConfig.icon;
-              
-              return (
-                <SelectItem key={role} value={role}>
-                  <div className="flex items-center space-x-2">
-                    <RoleIcon className={`h-4 w-4 ${roleConfig.color}`} />
-                    <span>{roleConfig.label}</span>
-                  </div>
-                </SelectItem>
-              );
-            })}
-          </SelectContent>
+        <Select value={activeRole} onChange={(e) => setActiveRole(e.target.value as UserRole)}>
+          {availableRoles.map((role) => {
+            const roleConfig = ROLE_CONFIG[role];
+            const RoleIcon = roleConfig.icon;
+            
+            return (
+              <SelectItem key={role} value={role}>
+                {roleConfig.label}
+              </SelectItem>
+            );
+          })}
         </Select>
       )}
     </div>

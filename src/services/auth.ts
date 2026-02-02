@@ -25,7 +25,7 @@ export class AuthService {
 
   // Listen to auth state changes
   onAuthStateChange(callback: (user: UserProfile | null) => void) {
-    return onAuthStateChanged(this.auth, async (firebaseUser) => {
+    return onAuthStateChanged(this.auth, async (firebaseUser: FirebaseUser | null) => {
       if (firebaseUser) {
         const userProfile = await this.getUserProfile(firebaseUser.uid);
         callback(userProfile);
