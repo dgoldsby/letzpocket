@@ -345,6 +345,18 @@ const LandingPage: React.FC = () => {
                   size="lg" 
                   className="text-lg px-8 py-4"
                   onClick={() => {
+                    const element = document.getElementById('chatbot-section');
+                    element?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                >
+                  <Bot className="mr-2 h-5 w-5" />
+                  LetzHelp - ask our bot any question about your rental
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  className="text-lg px-8 py-4"
+                  onClick={() => {
                     const featuresSection = document.getElementById('features-section');
                     if (featuresSection) {
                       featuresSection.scrollIntoView({ behavior: 'smooth' });
@@ -378,7 +390,7 @@ const LandingPage: React.FC = () => {
 
       {/* AI Chatbot Section */}
       {sectionFlags.chatbot && (
-        <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-lp-blue-50 to-lp-orange-50">
+        <section id="chatbot-section" className="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-lp-blue-50 to-lp-orange-50">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-8">
               <div className="flex items-center justify-center mb-4">
