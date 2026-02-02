@@ -1,4 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { RoleProvider } from './contexts/RoleContext';
 import Navigation from './components/Navigation';
 import Dashboard from './components/Dashboard';
 import AgreementChecker from './components/AgreementChecker';
@@ -6,35 +8,26 @@ import YieldCalculator from './components/YieldCalculator';
 import PriceEstimator from './components/PriceEstimator';
 import Properties from './components/Properties';
 import LandingPage from './components/LandingPage';
-import AuthModal from './components/AuthModal';
+import { LoginModal } from './components/LoginModal';
 
-interface User {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  createdAt: string;
-}
+function AppContent() {
+  const { user, loading, isAuthenticated } = useAuth();
+  const [currentPage, setCurrentPage] = React.useState('landing');
+  const [showLoginModal, setShowLoginModal] = React.useState(false);
 
-function App() {
-  const [currentPage, setCurrentPage] = useState('landing');
-  const [user, setUser] = useState<User | null>(null);
-  const [showAuthModal, setShowAuthModal] = useState(false);
-
-  const handleAuthSuccess = (userData: User) => {
-    setUser(userData);
+  const handleLoginSuccess = () => {
     setCurrentPage('dashboard');
+    setShowLoginModal(false);
   };
 
   const handleLogout = () => {
-    setUser(null);
     setCurrentPage('landing');
   };
 
   const renderCurrentPage = () => {
     // Show landing page if user is not authenticated
-    if (!user) {
-      return <LandingPage />;
+    if (!isAuthenticated) {
+      return <LandingPage onLoginClick={() => setShowLoginModal(true)} />;
     }
 
     // Show authenticated pages
@@ -54,26 +47,54 @@ function App() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-lp-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
-      {user && (
-        <Navigation 
-          currentPage={currentPage} 
-          onPageChange={setCurrentPage}
-          user={user}
-          onLogout={handleLogout}
-        />
+      {isAuthenticated && user && (
+        <>
+          <Navigation 
+            currentPage={currentPage} 
+            onPageChange={setCurrentPage}
+            user={user}
+            onLogout={handleLogout}
+          />
+          <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <RoleProvider user={user}>
+              {renderCurrentPage()}
+            </RoleProvider>
+          </main>
+        </>
       )}
-      <main className={user ? "max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8" : ""}>
-        {renderCurrentPage()}
-      </main>
       
-      <AuthModal
-        isOpen={showAuthModal}
-        onClose={() => setShowAuthModal(false)}
-        onAuthSuccess={handleAuthSuccess}
+      {!isAuthenticated && (
+        <main>
+          {renderCurrentPage()}
+        </main>
+      )}
+      
+      <LoginModal
+        isOpen={showLoginModal}
+        onClose={() => setShowLoginModal(false)}
       />
     </div>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 

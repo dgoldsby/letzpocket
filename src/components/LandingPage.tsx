@@ -67,7 +67,11 @@ const useSectionVisibility = () => {
   return { sectionFlags };
 };
 
-const LandingPage: React.FC = () => {
+interface LandingPageProps {
+  onLoginClick?: () => void;
+}
+
+const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick }) => {
   const [email, setEmail] = useState('');
   const [showFreeReview, setShowFreeReview] = useState(false);
   const [reviewEmail, setReviewEmail] = useState('');
@@ -302,8 +306,8 @@ const LandingPage: React.FC = () => {
                 }}>
                   Free Tenancy Agreement Review
                 </Button>
-                <Button>
-                  Sign Up
+                <Button onClick={onLoginClick}>
+                  Sign In
                 </Button>
               </div>
             </div>
