@@ -328,6 +328,18 @@ const LandingPage: React.FC = () => {
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button 
                   size="lg" 
+                  className="text-lg px-8 py-4 bg-lp-blue-600 text-white hover:bg-lp-blue-700"
+                  onClick={() => {
+                    const element = document.getElementById('chatbot-section');
+                    element?.scrollIntoView({ behavior: 'smooth' });
+                  }}
+                >
+                  <Bot className="mr-2 h-5 w-5" />
+                  LetzHelp - ask our bot any question about your rental
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="lg" 
                   className="text-lg px-8 py-4"
                   onClick={() => {
                     const freeReviewSection = document.getElementById('free-review-section');
