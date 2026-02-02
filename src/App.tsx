@@ -12,7 +12,7 @@ import { LoginModal } from './components/LoginModal';
 import { AdminPanel } from './components/AdminPanel';
 
 function AppContent() {
-  const { user, loading, isAuthenticated } = useAuth();
+  const { user, loading, isAuthenticated, logout } = useAuth();
   const [currentPage, setCurrentPage] = React.useState('landing');
   const [showLoginModal, setShowLoginModal] = React.useState(false);
 
@@ -21,8 +21,14 @@ function AppContent() {
     setShowLoginModal(false);
   };
 
-  const handleLogout = () => {
-    setCurrentPage('landing');
+  const handleLogout = async () => {
+    try {
+      await logout();
+      setCurrentPage('landing');
+      setShowLoginModal(false);
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
   };
 
   const renderCurrentPage = () => {
