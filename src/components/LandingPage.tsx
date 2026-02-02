@@ -4,25 +4,68 @@ import { Button } from './ui/button';
 import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { mailchimpService } from '../services/mailchimp';
-import Logo from './Logo';
+import { openaiService } from '../services/openai';
 import { 
-  FileText, 
-  Calculator, 
-  TrendingUp, 
   Shield, 
-  Mail, 
+  FileText, 
   CheckCircle, 
+  Star, 
   ArrowRight,
-  Star,
-  Users,
-  Clock,
-  PoundSterling,
-  Upload,
+  Calculator,
+  TrendingUp,
+  Building,
   BarChart3,
-  Lock,
   Zap,
-  Building2
+  Upload,
+  Mail,
+  Send,
+  Bot,
+  User
 } from 'lucide-react';
+import Logo from './Logo';
+
+// Debug flags for section visibility - set to false to hide sections
+const DEBUG_FLAGS = {
+  navigation: true,
+  hero: true,
+  chatbot: true,
+  features: true,
+  testimonials: true,
+  pricing: true,
+  freeReview: true,
+  newsletter: true,
+  footer: true
+};
+
+// Section visibility toggle function
+const useSectionVisibility = () => {
+  const [sectionFlags, setSectionFlags] = useState(DEBUG_FLAGS);
+
+  // Listen for admin panel updates
+  React.useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.data.type === 'SECTION_VISIBILITY_UPDATE') {
+        setSectionFlags(event.data.data);
+      }
+    };
+
+    window.addEventListener('message', handleMessage);
+    
+    // Check for saved settings in localStorage
+    const savedSettings = localStorage.getItem('homepageSectionVisibility');
+    if (savedSettings) {
+      try {
+        setSectionFlags(JSON.parse(savedSettings));
+      } catch (e) {
+        console.error('Failed to parse saved section settings');
+      }
+    }
+
+    return () => window.removeEventListener('message', handleMessage);
+  }, []);
+
+  return { sectionFlags };
+};
 
 const LandingPage: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -31,6 +74,50 @@ const LandingPage: React.FC = () => {
   const [reviewFile, setReviewFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  
+  // Chatbot state
+  const [chatMessages, setChatMessages] = useState<Array<{role: 'user' | 'assistant', content: string}>>([
+    { role: 'assistant', content: 'Hello! I\'m your AI assistant specializing in UK lettings and the Renters Rights Act. How can I help you today?' }
+  ]);
+  const [chatInput, setChatInput] = useState('');
+  const [isChatLoading, setIsChatLoading] = useState(false);
+  
+  const { sectionFlags } = useSectionVisibility();
+
+  const handleChatSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!chatInput.trim() || isChatLoading) return;
+
+    const userMessage = chatInput.trim();
+    setChatInput('');
+    setIsChatLoading(true);
+
+    // Add user message
+    setChatMessages(prev => [...prev, { role: 'user', content: userMessage }]);
+
+    try {
+      const assistantMessage = await openaiService.askAboutLettings(userMessage);
+      setChatMessages(prev => [...prev, { role: 'assistant', content: assistantMessage }]);
+    } catch (error) {
+      console.error('Chat error:', error);
+      
+      // Check if it's a quota error
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      if (errorMessage.includes('quota') || errorMessage.includes('billing')) {
+        setChatMessages(prev => [...prev, { 
+          role: 'assistant', 
+          content: 'I apologize, but the AI service is currently unavailable due to API quota limits. Please check back later or contact support for assistance. In the meantime, you can find comprehensive information about UK lettings and the Renters Rights Act on our resources page. Of course, my responses cannot be considered legally binding and must be reviewed by your legal representative.' 
+        }]);
+      } else {
+        setChatMessages(prev => [...prev, { 
+          role: 'assistant', 
+          content: 'Sorry, I\'m having trouble connecting right now. Please try again later. Of course, my responses cannot be considered legally binding and must be reviewed by your legal representative.' 
+        }]);
+      }
+    } finally {
+      setIsChatLoading(false);
+    }
+  };
 
   const handleNewsletterSignup = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,7 +190,7 @@ const LandingPage: React.FC = () => {
       color: 'text-lp-blue-600'
     },
     {
-      icon: Building2,
+      icon: Building,
       title: 'Portfolio Management',
       description: 'Manage all your properties in one place. Track tenants, lease expiries, and property performance with our intuitive dashboard.',
       color: 'text-lp-orange-600'
@@ -145,7 +232,7 @@ const LandingPage: React.FC = () => {
 
   const pricingPlans = [
     {
-      name: 'Free Agreement Review',
+      name: 'Free Tenancy Agreement Review',
       price: '£0',
       description: 'Perfect for landlords who want to check their compliance',
       features: [
@@ -155,7 +242,13 @@ const LandingPage: React.FC = () => {
         'Email delivery of results'
       ],
       highlighted: false,
-      action: () => setShowFreeReview(true)
+      action: () => {
+        const freeReviewSection = document.getElementById('free-review-section');
+        if (freeReviewSection) {
+          freeReviewSection.scrollIntoView({ behavior: 'smooth' });
+          setTimeout(() => setShowFreeReview(true), 500);
+        }
+      }
     },
     {
       name: 'Professional',
@@ -191,78 +284,188 @@ const LandingPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
-      {/* Navigation */}
-      <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <Logo size="small" />
-            </div>
-            <div className="flex items-center space-x-4">
-              <Button variant="ghost" onClick={() => setShowFreeReview(true)}>
-                Free Agreement Review
-              </Button>
-              <Button>
-                Sign Up
-              </Button>
+      {/* Navigation Section */}
+      {sectionFlags.navigation && (
+        <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex justify-between items-center h-16">
+              <div className="flex items-center">
+                <Logo size="small" />
+              </div>
+              <div className="flex items-center space-x-4">
+                <Button variant="ghost" onClick={() => {
+                  const freeReviewSection = document.getElementById('free-review-section');
+                  if (freeReviewSection) {
+                    freeReviewSection.scrollIntoView({ behavior: 'smooth' });
+                    setTimeout(() => setShowFreeReview(true), 500);
+                  }
+                }}>
+                  Free Tenancy Agreement Review
+                </Button>
+                <Button>
+                  Sign Up
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
-      </nav>
+        </nav>
+      )}
 
       {/* Hero Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-7xl mx-auto text-center">
-          <div className="mb-8">
-            <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-              The Smart Way to Manage Your
-              <span className="text-lp-blue-600"> UK Rental Portfolio</span>
-            </h1>
-            <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-              LetzPocket empowers UK landlords with AI-powered tools for compliance checking, 
-              yield calculations, and portfolio management. Stay ahead of the Renters Rights Act 
-              and maximize your rental returns.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Button 
-                size="lg" 
-                className="text-lg px-8 py-4"
-                onClick={() => setShowFreeReview(true)}
-              >
-                <FileText className="mr-2 h-5 w-5" />
-                Free Agreement Review
-              </Button>
-              <Button 
-                variant="outline" 
-                size="lg" 
-                className="text-lg px-8 py-4"
-              >
-                View All Features
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </Button>
+      {sectionFlags.hero && (
+        <section className="py-20 px-4 sm:px-6 lg:px-8">
+          <div className="max-w-7xl mx-auto text-center">
+            <div className="mb-8">
+              <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
+                The Smart Way to Manage Your
+                <span className="text-lp-blue-600"> UK Rental Portfolio</span>
+              </h1>
+              <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
+                LetzPocket empowers UK landlords with AI-powered tools for compliance checking, 
+                yield calculations, and portfolio management. Stay ahead of the Renters Rights Act 
+                and maximize your rental returns.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button 
+                  size="lg" 
+                  className="text-lg px-8 py-4"
+                  onClick={() => {
+                    const freeReviewSection = document.getElementById('free-review-section');
+                    if (freeReviewSection) {
+                      freeReviewSection.scrollIntoView({ behavior: 'smooth' });
+                      setTimeout(() => setShowFreeReview(true), 500); // Slight delay to ensure smooth scroll completes
+                    }
+                  }}
+                >
+                  <FileText className="mr-2 h-5 w-5" />
+                  Free Tenancy Agreement Review
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="lg" 
+                  className="text-lg px-8 py-4"
+                  onClick={() => {
+                    const featuresSection = document.getElementById('features-section');
+                    if (featuresSection) {
+                      featuresSection.scrollIntoView({ behavior: 'smooth' });
+                    }
+                  }}
+                >
+                  View All Features
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </div>
             </div>
-          </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16">
-            <div className="text-center">
-              <div className="text-3xl font-bold text-lp-blue-600 mb-2">10,000+</div>
-              <div className="text-gray-600">Landlords Trust LetzPocket</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-lp-orange-600 mb-2">£2.5B+</div>
-              <div className="text-gray-600">Portfolio Value Managed</div>
-            </div>
-            <div className="text-center">
-              <div className="text-3xl font-bold text-lp-blue-600 mb-2">98%</div>
-              <div className="text-gray-600">Compliance Issues Caught</div>
+            {/* Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mt-16">
+              <div className="text-center">
+                <div className="text-3xl font-bold text-lp-blue-600 mb-2">10,000+</div>
+                <div className="text-gray-600">Landlords Trust LetzPocket</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-lp-orange-600 mb-2">£2.5B+</div>
+                <div className="text-gray-600">Portfolio Value Managed</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl font-bold text-lp-blue-600 mb-2">98%</div>
+                <div className="text-gray-600">Compliance Issues Caught</div>
+              </div>
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
+
+      {/* AI Chatbot Section */}
+      {sectionFlags.chatbot && (
+        <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-lp-blue-50 to-lp-orange-50">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-8">
+              <div className="flex items-center justify-center mb-4">
+                <Bot className="h-12 w-12 text-lp-blue-600 mr-3" />
+                <h2 className="text-3xl font-bold text-gray-900">AI Lettings Assistant</h2>
+              </div>
+              <p className="text-lg text-gray-600">
+                Get expert answers about UK lettings and the Renters Rights Act from our AI assistant
+              </p>
+            </div>
+
+            <Card className="max-w-2xl mx-auto">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Bot className="h-6 w-6 text-lp-blue-600 mr-2" />
+                  Chat with Our AI Expert
+                </CardTitle>
+                <CardDescription>
+                  Ask questions about UK property lettings, tenant rights, and compliance
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="h-96 overflow-y-auto border border-gray-200 rounded-lg p-4 mb-4 bg-gray-50">
+                  {chatMessages.map((message, index) => (
+                    <div
+                      key={index}
+                      className={`mb-4 flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+                    >
+                      <div
+                        className={`max-w-xs lg:max-w-md px-4 py-2 rounded-lg ${
+                          message.role === 'user'
+                            ? 'bg-lp-blue-600 text-white'
+                            : 'bg-white border border-gray-200 text-gray-900'
+                        }`}
+                      >
+                        <div className="flex items-center mb-1">
+                          {message.role === 'assistant' ? (
+                            <Bot className="h-4 w-4 mr-2" />
+                          ) : (
+                            <User className="h-4 w-4 mr-2" />
+                          )}
+                          <span className="text-xs font-medium">
+                            {message.role === 'assistant' ? 'AI Assistant' : 'You'}
+                          </span>
+                        </div>
+                        <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                      </div>
+                    </div>
+                  ))}
+                  {isChatLoading && (
+                    <div className="flex justify-start mb-4">
+                      <div className="bg-white border border-gray-200 rounded-lg px-4 py-2">
+                        <div className="flex items-center">
+                          <Bot className="h-4 w-4 mr-2" />
+                          <div className="flex space-x-1">
+                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                            <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <form onSubmit={handleChatSubmit} className="flex space-x-2">
+                  <Input
+                    type="text"
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    placeholder="Ask about UK lettings, Renters Rights Act, etc."
+                    className="flex-1"
+                    disabled={isChatLoading}
+                  />
+                  <Button type="submit" disabled={isChatLoading || !chatInput.trim()}>
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+      )}
 
       {/* Features Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
+      {sectionFlags.features && (
+        <section id="features-section" className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
@@ -292,9 +495,11 @@ const LandingPage: React.FC = () => {
           </div>
         </div>
       </section>
+      )}
 
       {/* Free Review Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-lp-blue-50 to-lp-orange-50">
+      {sectionFlags.freeReview && (
+        <section id="free-review-section" className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-lp-blue-50 to-lp-orange-50">
         <div className="max-w-4xl mx-auto text-center">
           <div className="mb-8">
             <Shield className="h-16 w-16 text-lp-blue-600 mx-auto mb-4" />
@@ -394,9 +599,11 @@ const LandingPage: React.FC = () => {
           )}
         </div>
       </section>
+      )}
 
-      {/* Testimonials */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
+      {/* Testimonials Section */}
+      {sectionFlags.testimonials && (
+        <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
@@ -427,9 +634,11 @@ const LandingPage: React.FC = () => {
           </div>
         </div>
       </section>
+      )}
 
-      {/* Pricing */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50">
+      {/* Pricing Section */}
+      {sectionFlags.pricing && (
+        <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
@@ -468,7 +677,7 @@ const LandingPage: React.FC = () => {
                     variant={plan.highlighted ? 'default' : 'outline'}
                     onClick={plan.action}
                   >
-                    {plan.name === 'Free Agreement Review' ? 'Start Review' : 
+                    {plan.name === 'Free Tenancy Agreement Review' ? 'Start Review' : 
                      plan.name === 'Enterprise' ? 'Contact Sales' : 'Get Started'}
                   </Button>
                 </CardContent>
@@ -477,9 +686,11 @@ const LandingPage: React.FC = () => {
           </div>
         </div>
       </section>
+      )}
 
-      {/* Newsletter Signup */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8 bg-lp-blue-600">
+      {/* Newsletter Signup Section */}
+      {sectionFlags.newsletter && (
+        <section className="py-20 px-4 sm:px-6 lg:px-8 bg-lp-blue-600">
         <div className="max-w-4xl mx-auto text-center">
           <Mail className="h-16 w-16 text-white mx-auto mb-4" />
           <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
@@ -511,14 +722,16 @@ const LandingPage: React.FC = () => {
           )}
         </div>
       </section>
+      )}
 
-      {/* Footer */}
-      <footer className="bg-gray-900 text-white py-12 px-4 sm:px-6 lg:px-8">
+      {/* Footer Section */}
+      {sectionFlags.footer && (
+        <footer className="bg-gray-900 text-white py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
               <div className="flex items-center space-x-2 mb-4">
-                <Building2 className="h-6 w-6" />
+                <Building className="h-6 w-6" />
                 <span className="text-lg font-bold">LetzPocket</span>
               </div>
               <p className="text-gray-400">
@@ -562,6 +775,7 @@ const LandingPage: React.FC = () => {
           </div>
         </div>
       </footer>
+      )}
     </div>
   );
 };

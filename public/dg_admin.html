@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LetzPocket Admin - Section Control</title>
+    <style>
+        /* Base styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f9fafb;
+            line-height: 1.6;
+        }
+        
+        .min-h-screen {
+            min-height: 100vh;
+        }
+        
+        /* Header styles */
+        .bg-white {
+            background-color: white;
+        }
+        
+        .border-b {
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .border-gray-200 {
+            border-color: #e5e7eb;
+        }
+        
+        .max-w-7xl {
+            max-width: 1280px;
+        }
+        
+        .mx-auto {
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .px-4 {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+        
+        .sm\:px-6 {
+            padding-left: 1.5rem;
+            padding-right: 1.5rem;
+        }
+        
+        .lg\:px-8 {
+            padding-left: 2rem;
+            padding-right: 2rem;
+        }
+        
+        .py-8 {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+        
+        .h-16 {
+            height: 4rem;
+        }
+        
+        .flex {
+            display: flex;
+        }
+        
+        .items-center {
+            align-items: center;
+        }
+        
+        .justify-between {
+            justify-content: space-between;
+        }
+        
+        .space-x-4 > * + * {
+            margin-left: 1rem;
+        }
+        
+        .space-x-2 > * + * {
+            margin-left: 0.5rem;
+        }
+        
+        .text-2xl {
+            font-size: 1.5rem;
+            line-height: 2rem;
+        }
+        
+        .font-bold {
+            font-weight: 700;
+        }
+        
+        .text-gray-900 {
+            color: #111827;
+        }
+        
+        .ml-3 {
+            margin-left: 0.75rem;
+        }
+        
+        .px-3 {
+            padding-left: 0.75rem;
+            padding-right: 0.75rem;
+        }
+        
+        .py-1 {
+            padding-top: 0.25rem;
+            padding-bottom: 0.25rem;
+        }
+        
+        .text-xs {
+            font-size: 0.75rem;
+            line-height: 1rem;
+        }
+        
+        .font-medium {
+            font-weight: 500;
+        }
+        
+        .bg-blue-100 {
+            background-color: #dbeafe;
+        }
+        
+        .text-blue-800 {
+            color: #1e40af;
+        }
+        
+        .rounded-full {
+            border-radius: 9999px;
+        }
+        
+        .px-4 {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
+        
+        .py-2 {
+            padding-top: 0.5rem;
+            padding-bottom: 0.5rem;
+        }
+        
+        .text-sm {
+            font-size: 0.875rem;
+            line-height: 1.25rem;
+        }
+        
+        .text-gray-700 {
+            color: #374151;
+        }
+        
+        .border {
+            border: 1px solid #e5e7eb;
+        }
+        
+        .border-gray-300 {
+            border-color: #d1d5db;
+        }
+        
+        .rounded-md {
+            border-radius: 0.375rem;
+        }
+        
+        .hover\:bg-gray-50:hover {
+            background-color: #f9fafb;
+        }
+        
+        .bg-blue-100 {
+            background-color: #dbeafe;
+        }
+        
+        .hover\:bg-blue-200:hover {
+            background-color: #bfdbfe;
+        }
+        
+        .bg-green-600 {
+            background-color: #059669;
+        }
+        
+        .text-white {
+            color: white;
+        }
+        
+        .hover\:bg-green-700:hover {
+            background-color: #047857;
+        }
+        
+        /* Main content styles */
+        .mb-6 {
+            margin-bottom: 1.5rem;
+        }
+        
+        .p-4 {
+            padding: 1rem;
+        }
+        
+        .bg-blue-50 {
+            background-color: #eff6ff;
+        }
+        
+        .border-blue-200 {
+            border-color: #bfdbfe;
+        }
+        
+        .rounded-lg {
+            border-radius: 0.5rem;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .flex-shrink-0 {
+            flex-shrink: 0;
+        }
+        
+        .ml-3 {
+            margin-left: 0.75rem;
+        }
+        
+        .text-blue-400 {
+            color: #60a5fa;
+        }
+        
+        .h-5 {
+            height: 1.25rem;
+        }
+        
+        .w-5 {
+            width: 1.25rem;
+        }
+        
+        .text-blue-800 {
+            color: #1e40af;
+        }
+        
+        .text-green-800 {
+            color: #166534;
+        }
+        
+        .text-red-800 {
+            color: #991b1b;
+        }
+        
+        .bg-green-50 {
+            background-color: #f0fdf4;
+        }
+        
+        .border-green-200 {
+            border-color: #bbf7d0;
+        }
+        
+        .bg-red-50 {
+            background-color: #fef2f2;
+        }
+        
+        .border-red-200 {
+            border-color: #fecaca;
+        }
+        
+        .shadow {
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+        }
+        
+        .rounded-lg {
+            border-radius: 0.5rem;
+        }
+        
+        .px-6 {
+            padding-left: 1.5rem;
+            padding-right: 1.5rem;
+        }
+        
+        .py-4 {
+            padding-top: 1rem;
+            padding-bottom: 1rem;
+        }
+        
+        .border-b {
+            border-bottom: 1px solid #e5e7eb;
+        }
+        
+        .border-gray-200 {
+            border-color: #e5e7eb;
+        }
+        
+        .text-lg {
+            font-size: 1.125rem;
+            line-height: 1.75rem;
+        }
+        
+        .font-medium {
+            font-weight: 500;
+        }
+        
+        .text-gray-900 {
+            color: #111827;
+        }
+        
+        .mt-1 {
+            margin-top: 0.25rem;
+        }
+        
+        .text-gray-500 {
+            color: #6b7280;
+        }
+        
+        .p-6 {
+            padding: 1.5rem;
+        }
+        
+        .grid {
+            display: grid;
+        }
+        
+        .grid-cols-1 {
+            grid-template-columns: repeat(1, minmax(0, 1fr));
+        }
+        
+        .md\:grid-cols-2 {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        
+        .lg\:grid-cols-3 {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+        
+        .gap-6 {
+            gap: 1.5rem;
+        }
+        
+        .mt-8 {
+            margin-top: 2rem;
+        }
+        
+        .border-2 {
+            border: 2px solid;
+        }
+        
+        .border-dashed {
+            border-style: dashed;
+        }
+        
+        .border-gray-300 {
+            border-color: #d1d5db;
+        }
+        
+        .rounded-lg {
+            border-radius: 0.5rem;
+        }
+        
+        .p-8 {
+            padding: 2rem;
+        }
+        
+        .text-center {
+            text-align: center;
+        }
+        
+        .inline-flex {
+            display: inline-flex;
+        }
+        
+        .w-4 {
+            width: 1rem;
+        }
+        
+        .h-4 {
+            height: 1rem;
+        }
+        
+        .mr-2 {
+            margin-right: 0.5rem;
+        }
+        
+        .hover\:bg-blue-700:hover {
+            background-color: #1d4ed8;
+        }
+        
+        /* Section card styles */
+        .section-card {
+            transition: all 0.3s ease;
+            border: 1px solid #e5e7eb;
+            border-radius: 0.5rem;
+            padding: 1rem;
+            background-color: white;
+        }
+        
+        .section-card.section-hidden {
+            opacity: 0.6;
+            border-color: #ef4444;
+        }
+        
+        .flex-1 {
+            flex: 1;
+        }
+        
+        .items-start {
+            align-items: flex-start;
+        }
+        
+        .mb-2 {
+            margin-bottom: 0.5rem;
+        }
+        
+        .text-2xl {
+            font-size: 1.5rem;
+            line-height: 2rem;
+        }
+        
+        .mr-3 {
+            margin-right: 0.75rem;
+        }
+        
+        .ml-4 {
+            margin-left: 1rem;
+        }
+        
+        /* Toggle switch styles */
+        .toggle-switch {
+            position: relative;
+            width: 60px;
+            height: 28px;
+        }
+        
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+        
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+        
+        input:checked + .slider {
+            background-color: #10b981;
+        }
+        
+        input:checked + .slider:before {
+            transform: translateX(32px);
+        }
+        
+        label {
+            display: block;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+    <div class="min-h-screen">
+        <!-- Header -->
+        <header class="bg-white border-b border-gray-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between items-center h-16">
+                    <div class="flex items-center">
+                        <h1 class="text-2xl font-bold text-gray-900">LetzPocket Admin</h1>
+                        <span class="ml-3 px-3 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">CMS</span>
+                    </div>
+                    <div class="flex items-center space-x-4">
+                        <button onclick="resetToDefaults()" class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
+                            Reset to Defaults
+                        </button>
+                        <button onclick="previewChanges()" class="px-4 py-2 text-sm font-medium text-blue-700 bg-blue-100 rounded-md hover:bg-blue-200">
+                            Preview
+                        </button>
+                        <button onclick="publishChanges()" class="px-4 py-2 text-sm font-medium text-white bg-green-600 rounded-md hover:bg-green-700">
+                            Publish Changes
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Status Bar -->
+            <div id="statusBar" class="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-lg hidden">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0">
+                        <svg class="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                        </svg>
+                    </div>
+                    <div class="ml-3">
+                        <p id="statusMessage" class="text-sm text-blue-800"></p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section Controls -->
+            <div class="bg-white shadow rounded-lg">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-medium text-gray-900">Homepage Section Control</h2>
+                    <p class="mt-1 text-sm text-gray-500">Toggle sections on/off to control what appears on the homepage</p>
+                </div>
+                
+                <div class="p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="sectionControls">
+                        <!-- Section cards will be dynamically inserted here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Live Preview -->
+            <div class="mt-8 bg-white shadow rounded-lg">
+                <div class="px-6 py-4 border-b border-gray-200">
+                    <h2 class="text-lg font-medium text-gray-900">Live Preview</h2>
+                    <p class="mt-1 text-sm text-gray-500">See how your changes affect the homepage layout</p>
+                </div>
+                <div class="p-6">
+                    <div class="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
+                        <button onclick="window.open('/', '_blank')" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                            Open Homepage in New Tab
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Section configuration
+        const sections = [
+            { id: 'navigation', name: 'Navigation', description: 'Top navigation bar with menu items', icon: '🧭' },
+            { id: 'hero', name: 'Hero Section', description: 'Main landing area with CTAs and stats', icon: '🏠' },
+            { id: 'chatbot', name: 'AI Chatbot', description: 'AI-powered lettings assistant chat', icon: '🤖' },
+            { id: 'features', name: 'Features', description: 'Feature cards and descriptions', icon: '⭐' },
+            { id: 'testimonials', name: 'Testimonials', description: 'Customer reviews and testimonials', icon: '💬' },
+            { id: 'pricing', name: 'Pricing', description: 'Pricing plans and options', icon: '💰' },
+            { id: 'freeReview', name: 'Free Review', description: 'Agreement upload and review section', icon: '📄' },
+            { id: 'newsletter', name: 'Newsletter', description: 'Email signup section', icon: '📧' },
+            { id: 'footer', name: 'Footer', description: 'Site footer with links', icon: '🦶' }
+        ];
+
+        // Default visibility state
+        const defaultVisibility = {
+            navigation: true,
+            hero: true,
+            chatbot: true,
+            features: true,
+            testimonials: true,
+            pricing: true,
+            freeReview: true,
+            newsletter: true,
+            footer: true
+        };
+
+        let currentVisibility = { ...defaultVisibility };
+        let hasUnsavedChanges = false;
+
+        // Initialize the admin interface
+        function initializeAdmin() {
+            renderSectionControls();
+            loadSavedSettings();
+            setupEventListeners();
+        }
+
+        // Render section control cards
+        function renderSectionControls() {
+            const container = document.getElementById('sectionControls');
+            container.innerHTML = '';
+
+            console.log('Rendering section controls...', sections);
+
+            sections.forEach(section => {
+                const card = document.createElement('div');
+                card.className = `section-card border rounded-lg p-4 ${!currentVisibility[section.id] ? 'section-hidden' : ''}`;
+                card.innerHTML = `
+                    <div class="flex items-start justify-between">
+                        <div class="flex-1">
+                            <div class="flex items-center mb-2">
+                                <span class="text-2xl mr-3">${section.icon}</span>
+                                <h3 class="text-lg font-medium text-gray-900">${section.name}</h3>
+                            </div>
+                            <p class="text-sm text-gray-500">${section.description}</p>
+                        </div>
+                        <div class="ml-4">
+                            <label class="toggle-switch">
+                                <input type="checkbox" 
+                                       id="toggle-${section.id}" 
+                                       ${currentVisibility[section.id] ? 'checked' : ''}
+                                       onchange="toggleSection('${section.id}')">
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+                console.log(`Added section: ${section.name}, visible: ${currentVisibility[section.id]}`);
+            });
+        }
+
+        // Toggle section visibility
+        function toggleSection(sectionId) {
+            console.log(`Toggling section: ${sectionId}, current state: ${currentVisibility[sectionId]}`);
+            currentVisibility[sectionId] = !currentVisibility[sectionId];
+            hasUnsavedChanges = true;
+            
+            console.log(`New state for ${sectionId}: ${currentVisibility[sectionId]}`);
+            
+            // Update card appearance
+            const card = document.querySelector(`#toggle-${sectionId}`).closest('.section-card');
+            if (currentVisibility[sectionId]) {
+                card.classList.remove('section-hidden');
+            } else {
+                card.classList.add('section-hidden');
+            }
+
+            // Apply changes to homepage in real-time
+            applyToHomepage();
+        }
+
+        // Apply visibility changes to homepage
+        function applyToHomepage() {
+            // Store in localStorage for real-time updates
+            localStorage.setItem('homepageSectionVisibility', JSON.stringify(currentVisibility));
+            
+            // If homepage is open, send message to update
+            if (window.opener || window.parent !== window) {
+                try {
+                    window.postMessage({
+                        type: 'SECTION_VISIBILITY_UPDATE',
+                        data: currentVisibility
+                    }, '*');
+                } catch (e) {
+                    console.log('Could not send message to parent window');
+                }
+            }
+        }
+
+        // Load saved settings
+        function loadSavedSettings() {
+            const saved = localStorage.getItem('homepageSectionVisibility');
+            if (saved) {
+                currentVisibility = JSON.parse(saved);
+                renderSectionControls();
+            }
+        }
+
+        // Reset to defaults
+        function resetToDefaults() {
+            if (confirm('Are you sure you want to reset all sections to their default visibility?')) {
+                currentVisibility = { ...defaultVisibility };
+                hasUnsavedChanges = true;
+                renderSectionControls();
+                applyToHomepage();
+                showStatus('Reset to default settings', 'info');
+            }
+        }
+
+        // Preview changes
+        function previewChanges() {
+            applyToHomepage();
+            showStatus('Changes applied to preview', 'success');
+        }
+
+        // Publish changes
+        function publishChanges() {
+            // Save to localStorage (in production, this would save to a backend)
+            localStorage.setItem('publishedHomepageSections', JSON.stringify(currentVisibility));
+            localStorage.setItem('homepageSectionVisibility', JSON.stringify(currentVisibility));
+            
+            hasUnsavedChanges = false;
+            showStatus('Changes published successfully!', 'success');
+            
+            // In a real CMS, this would make an API call to save to database
+            console.log('Published settings:', currentVisibility);
+        }
+
+        // Show status message
+        function showStatus(message, type = 'info') {
+            const statusBar = document.getElementById('statusBar');
+            const statusMessage = document.getElementById('statusMessage');
+            
+            statusBar.classList.remove('hidden', 'bg-green-50', 'bg-blue-50', 'bg-red-50', 'border-green-200', 'border-blue-200', 'border-red-200');
+            statusMessage.classList.remove('text-green-800', 'text-blue-800', 'text-red-800');
+            
+            if (type === 'success') {
+                statusBar.classList.add('bg-green-50', 'border-green-200');
+                statusMessage.classList.add('text-green-800');
+            } else if (type === 'error') {
+                statusBar.classList.add('bg-red-50', 'border-red-200');
+                statusMessage.classList.add('text-red-800');
+            } else {
+                statusBar.classList.add('bg-blue-50', 'border-blue-200');
+                statusMessage.classList.add('text-blue-800');
+            }
+            
+            statusMessage.textContent = message;
+            
+            // Auto-hide after 3 seconds
+            setTimeout(() => {
+                statusBar.classList.add('hidden');
+            }, 3000);
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Warn before leaving if there are unsaved changes
+            window.addEventListener('beforeunload', (e) => {
+                if (hasUnsavedChanges) {
+                    e.preventDefault();
+                    e.returnValue = 'You have unsaved changes. Are you sure you want to leave?';
+                }
+            });
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', initializeAdmin);
+    </script>
+</body>
+</html>
