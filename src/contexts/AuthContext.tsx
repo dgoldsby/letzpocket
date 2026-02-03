@@ -5,7 +5,7 @@ import { authService } from '../services/auth';
 interface AuthContextType extends AuthState {
   login: (email: string, password: string) => Promise<UserProfile>;
   register: (data: any) => Promise<UserProfile>;
-  signInWithGoogle: () => Promise<UserProfile | { needsRoleCollection: true; user: UserProfile }>;
+  signInWithGoogle: () => Promise<UserProfile>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   updateUserRoles: (uid: string, roles: any[]) => Promise<void>;
@@ -93,23 +93,12 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   };
 
-  const signInWithGoogle = async (): Promise<UserProfile | { needsRoleCollection: true; user: UserProfile }> => {
+  const signInWithGoogle = async (): Promise<UserProfile> => {
     try {
       setAuthState(prev => ({ ...prev, loading: true, error: null }));
       const result = await authService.signInWithGoogle();
       
-      // Check if role collection is needed
-      if ('needsRoleCollection' in result) {
-        setAuthState({
-          user: result.user,
-          loading: false,
-          error: null,
-          isAuthenticated: true
-        });
-        return result;
-      }
-      
-      // Normal sign-in flow
+      // Normal sign-in flow (role collection disabled)
       setAuthState({
         user: result,
         loading: false,
@@ -122,8 +111,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       setAuthState(prev => ({
         ...prev,
         loading: false,
-        error: errorMessage,
-        isAuthenticated: false
+        error: errorMessage
       }));
       throw error;
     }

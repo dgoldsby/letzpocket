@@ -41,11 +41,8 @@ export function LoginModal({ isOpen, onClose }: LoginModalProps) {
     try {
       const result = await signInWithGoogle();
       
-      // Check if role collection is needed
-      if (result && 'needsRoleCollection' in result) {
-        setPendingUser(result.user);
-        setShowRoleCollection(true);
-      } else {
+      // Always close modal on successful Google sign-in (role collection disabled for now)
+      if (result) {
         onClose();
       }
     } catch (error) {

@@ -56,7 +56,7 @@ export class AuthService {
   }
 
   // Google sign-in
-  async signInWithGoogle(): Promise<UserProfile | { needsRoleCollection: true; user: UserProfile }> {
+  async signInWithGoogle(): Promise<UserProfile> {
     try {
       const auth = getAuth();
       const provider = new GoogleAuthProvider();
@@ -68,16 +68,10 @@ export class AuthService {
       let userProfile = await this.getUserProfile(firebaseUser.uid);
       
       if (!userProfile) {
-        // Create new user profile for Google sign-in (without roles initially)
+        // Create new user profile for Google sign-in (with default role for now)
         userProfile = await this.createGoogleUserProfile(firebaseUser);
-        // Return special status to trigger role collection modal
-        return { needsRoleCollection: true, user: userProfile };
       } else {
-        // Check if user has roles
-        if (!userProfile.roles || userProfile.roles.length === 0) {
-          return { needsRoleCollection: true, user: userProfile };
-        }
-        // Update last login for existing user with roles
+        // Update last login for existing user
         await this.updateLastLogin(firebaseUser.uid);
       }
 

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>No Iframe Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #f0f0f0;
+        }
+        .test {
+            background: white;
+            padding: 20px;
+            margin: 10px 0;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .success { border-left: 4px solid #4caf50; }
+        .error { border-left: 4px solid #f44336; }
+        .warning { border-left: 4px solid #ff9800; }
+        button {
+            background: #2196f3;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover { background: #1976d2; }
+        #console-output {
+            background: #1e1e1e;
+            color: #fff;
+            padding: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔍 Iframe Investigation Test</h1>
+    
+    <div class="test warning">
+        <h2>⚠️ Iframe Detection</h2>
+        <p>Checking for iframes and redirects...</p>
+        <div id="iframe-info"></div>
+    </div>
+
+    <div class="test">
+        <h2>🧪 React App Test (No Firebase)</h2>
+        <button onclick="testMinimalReact()">Test Minimal React</button>
+        <button onclick="testWithFirebase()">Test With Firebase</button>
+        <div id="react-container"></div>
+    </div>
+
+    <div class="test">
+        <h2>📊 Console Output</h2>
+        <div id="console-output"></div>
+    </div>
+
+    <script>
+        const consoleOutput = document.getElementById('console-output');
+        
+        function log(message, type = 'info') {
+            const timestamp = new Date().toLocaleTimeString();
+            const prefix = type === 'error' ? '❌' : type === 'warn' ? '⚠️' : 'ℹ️';
+            consoleOutput.textContent += `[${timestamp}] ${prefix} ${message}\n`;
+            consoleOutput.scrollTop = consoleOutput.scrollHeight;
+        }
+
+        // Check for iframes
+        function checkIframes() {
+            const iframes = document.querySelectorAll('iframe');
+            const iframeInfo = document.getElementById('iframe-info');
+            
+            if (iframes.length > 0) {
+                iframeInfo.innerHTML = `<p style="color: red;">❌ Found ${iframes.length} iframe(s):</p>`;
+                iframes.forEach((iframe, index) => {
+                    iframeInfo.innerHTML += `<p>Frame ${index + 1}: src="${iframe.src}"</p>`;
+                });
+            } else {
+                iframeInfo.innerHTML = `<p style="color: green;">✅ No iframes found</p>`;
+            }
+
+            // Monitor for new iframes
+            const observer = new MutationObserver((mutations) => {
+                mutations.forEach((mutation) => {
+                    mutation.addedNodes.forEach((node) => {
+                        if (node.nodeName === 'IFRAME') {
+                            log(`🔄 New iframe detected: src="${node.src}"`, 'warn');
+                        }
+                    });
+                });
+            });
+
+            observer.observe(document.body, {
+                childList: true,
+                subtree: true
+            });
+
+            log('🔍 Started monitoring for iframes...');
+        }
+
+        function testMinimalReact() {
+            log('🧪 Testing minimal React without Firebase...');
+            const container = document.getElementById('react-container');
+            
+            // Create a simple React-like structure without Firebase
+            container.innerHTML = `
+                <div style="border: 2px solid #4caf50; padding: 20px; border-radius: 8px;">
+                    <h3>✅ Minimal Test Successful</h3>
+                    <p>This is a simple test without Firebase or complex dependencies.</p>
+                    <div id="minimal-root"></div>
+                </div>
+            `;
+
+            // Try to load just the CSS first
+            const cssLink = document.createElement('link');
+            cssLink.rel = 'stylesheet';
+            cssLink.href = './static/css/main.3370d1a3.css';
+            cssLink.onload = () => log('✅ CSS loaded successfully');
+            cssLink.onerror = () => log('❌ CSS failed to load', 'error');
+            document.head.appendChild(cssLink);
+        }
+
+        function testWithFirebase() {
+            log('🔥 Testing with Firebase (this might cause iframes)...');
+            const container = document.getElementById('react-container');
+            
+            container.innerHTML = `
+                <div style="border: 2px dashed #ff9800; padding: 20px; border-radius: 8px;">
+                    <h3>🔥 Firebase Test</h3>
+                    <div id="firebase-root"></div>
+                    <p>Loading Firebase SDK...</p>
+                </div>
+            `;
+
+            // Load Firebase SDK
+            const firebaseApp = document.createElement('script');
+            firebaseApp.src = 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js';
+            firebaseApp.onload = () => {
+                log('✅ Firebase App SDK loaded');
+                
+                const firebaseAuth = document.createElement('script');
+                firebaseAuth.src = 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js';
+                firebaseAuth.onload = () => {
+                    log('✅ Firebase Auth SDK loaded');
+                    
+                    // Initialize Firebase
+                    try {
+                        const firebaseConfig = {
+                            apiKey: "AIzaSyBiANBFBL0K4v36ZSYD_wS7uGdRsQIbC-A",
+                            authDomain: "letzpocket-site.firebaseapp.com",
+                            projectId: "letzpocket-site",
+                            storageBucket: "letzpocket-site.firebasestorage.app",
+                            messagingSenderId: "557937099852",
+                            appId: "1:557937099852:web:b3dfab6dac35efb51ae0e9"
+                        };
+                        
+                        firebase.initializeApp(firebaseConfig);
+                        log('✅ Firebase initialized successfully');
+                        
+                        // Check auth state
+                        const auth = firebase.auth();
+                        auth.onAuthStateChanged((user) => {
+                            if (user) {
+                                log(`✅ User logged in: ${user.email}`);
+                            } else {
+                                log('ℹ️ No user logged in');
+                            }
+                        });
+                        
+                    } catch (error) {
+                        log(`❌ Firebase initialization error: ${error.message}`, 'error');
+                    }
+                };
+                firebaseAuth.onerror = () => log('❌ Firebase Auth SDK failed to load', 'error');
+                document.head.appendChild(firebaseAuth);
+            };
+            firebaseApp.onerror = () => log('❌ Firebase App SDK failed to load', 'error');
+            document.head.appendChild(firebaseApp);
+        }
+
+        // Initialize
+        log('🚀 Starting iframe investigation test...');
+        checkIframes();
+        
+        // Monitor network requests
+        const originalFetch = window.fetch;
+        window.fetch = function(...args) {
+            log(`🌐 Fetch request: ${args[0]}`);
+            return originalFetch.apply(this, args).catch(error => {
+                log(`❌ Fetch failed: ${error.message}`, 'error');
+                throw error;
+            });
+        };
+    </script>
+</body>
+</html>
