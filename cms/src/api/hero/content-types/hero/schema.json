@@ -1,0 +1,37 @@
+{
+  "kind": "collectionType",
+  "collectionName": "heroes",
+  "info": {
+    "singularName": "hero",
+    "pluralName": "heroes",
+    "displayName": "hero"
+  },
+  "options": {
+    "draftAndPublish": true
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "header": {
+      "type": "string"
+    },
+    "subheader": {
+      "type": "richtext"
+    },
+    "headerColor": {
+      "type": "enumeration",
+      "enum": [
+        "black",
+        "orange",
+        "blue"
+      ]
+    },
+    "subheaderColor": {
+      "type": "enumeration",
+      "enum": [
+        "Black",
+        "Orange",
+        "Blue"
+      ]
+    }
+  }
+}

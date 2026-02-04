@@ -5,6 +5,9 @@ import { Input } from './ui/input';
 import { Label } from './ui/label';
 import { mailchimpService } from '../services/mailchimp';
 import { openaiService } from '../services/openai';
+import { useSignInControl } from '../hooks/useSignInControl';
+import { useStrapiSections } from '../hooks/useStrapiContent';
+import { useStrapiHero } from '../hooks/useStrapiContent';
 import { 
   Shield, 
   FileText, 
@@ -24,49 +27,6 @@ import {
 } from 'lucide-react';
 import Logo from './Logo';
 
-// Debug flags for section visibility - set to false to hide sections
-const DEBUG_FLAGS = {
-  navigation: true,
-  hero: true,
-  chatbot: true,
-  features: true,
-  testimonials: true,
-  pricing: true,
-  freeReview: true,
-  newsletter: true,
-  footer: true
-};
-
-// Section visibility toggle function
-const useSectionVisibility = () => {
-  const [sectionFlags, setSectionFlags] = useState(DEBUG_FLAGS);
-
-  // Listen for admin panel updates
-  React.useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
-      if (event.data.type === 'SECTION_VISIBILITY_UPDATE') {
-        setSectionFlags(event.data.data);
-      }
-    };
-
-    window.addEventListener('message', handleMessage);
-    
-    // Check for saved settings in localStorage
-    const savedSettings = localStorage.getItem('homepageSectionVisibility');
-    if (savedSettings) {
-      try {
-        setSectionFlags(JSON.parse(savedSettings));
-      } catch (e) {
-        console.error('Failed to parse saved section settings');
-      }
-    }
-
-    return () => window.removeEventListener('message', handleMessage);
-  }, []);
-
-  return { sectionFlags };
-};
-
 interface LandingPageProps {
   onLoginClick?: () => void;
 }
@@ -75,9 +35,20 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick }) => {
   const [email, setEmail] = useState('');
   const [showFreeReview, setShowFreeReview] = useState(false);
   const [reviewEmail, setReviewEmail] = useState('');
+  const { isSignInDisabled, disabledMessage } = useSignInControl();
+  const { sections } = useStrapiSections();
+  const { heroText, getTextColorClass } = useStrapiHero();
   const [reviewFile, setReviewFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+
+  const handleSignInClick = () => {
+    if (isSignInDisabled) {
+      alert(disabledMessage);
+      return;
+    }
+    onLoginClick?.();
+  };
   
   // Chatbot state
   const [chatMessages, setChatMessages] = useState<Array<{role: 'user' | 'assistant', content: string}>>([
@@ -85,8 +56,6 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick }) => {
   ]);
   const [chatInput, setChatInput] = useState('');
   const [isChatLoading, setIsChatLoading] = useState(false);
-  
-  const { sectionFlags } = useSectionVisibility();
 
   const handleChatSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -289,7 +258,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick }) => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-white to-gray-50">
       {/* Navigation Section */}
-      {sectionFlags.navigation && (
+      {sections.navigation && (
         <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex justify-between items-center h-16">
@@ -306,8 +275,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick }) => {
                 }}>
                   Free Tenancy Agreement Review
                 </Button>
-                <Button onClick={onLoginClick}>
-                  Sign In
+                <Button onClick={handleSignInClick} disabled={isSignInDisabled}>
+                  {isSignInDisabled ? 'Sign In Disabled' : 'Sign In'}
                 </Button>
               </div>
             </div>
@@ -316,18 +285,17 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick }) => {
       )}
 
       {/* Hero Section */}
-      {sectionFlags.hero && (
+      {sections.hero && (
         <section className="py-20 px-4 sm:px-6 lg:px-8">
           <div className="max-w-7xl mx-auto text-center">
             <div className="mb-8">
-              <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-                The Smart Way to Manage Your
-                <span className="text-lp-blue-600"> UK Rental Portfolio</span>
+              <h1 className="text-4xl md:text-6xl font-bold mb-6">
+                <span className={getTextColorClass(heroText.headerColor)}>
+                  {heroText.header}
+                </span>
               </h1>
-              <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-                LetzPocket empowers UK landlords with AI-powered tools for compliance checking, 
-                yield calculations, and portfolio management. Stay ahead of the Renters Rights Act 
-                and maximize your rental returns.
+              <p className={`text-xl mb-8 max-w-3xl mx-auto ${getTextColorClass(heroText.subheaderColor)}`}>
+                {heroText.subheader}
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
                 <Button 
@@ -378,7 +346,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick }) => {
       )}
 
       {/* AI Chatbot Section */}
-      {sectionFlags.chatbot && (
+      {sections.chatbot && (
         <section id="chatbot-section" className="py-16 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-lp-blue-50 to-lp-orange-50">
           <div className="max-w-4xl mx-auto">
             <div className="text-center mb-8">
@@ -465,7 +433,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick }) => {
       )}
 
       {/* Features Section */}
-      {sectionFlags.features && (
+      {sections.features && (
         <section id="features-section" className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
@@ -499,7 +467,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick }) => {
       )}
 
       {/* Free Review Section */}
-      {sectionFlags.freeReview && (
+      {sections.freeReview && (
         <section id="free-review-section" className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-r from-lp-blue-50 to-lp-orange-50">
         <div className="max-w-4xl mx-auto text-center">
           <div className="mb-8">
@@ -603,7 +571,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick }) => {
       )}
 
       {/* Testimonials Section */}
-      {sectionFlags.testimonials && (
+      {sections.testimonials && (
         <section className="py-20 px-4 sm:px-6 lg:px-8 bg-white">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
@@ -638,7 +606,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick }) => {
       )}
 
       {/* Pricing Section */}
-      {sectionFlags.pricing && (
+      {sections.pricing && (
         <section className="py-20 px-4 sm:px-6 lg:px-8 bg-gray-50">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-16">
@@ -690,7 +658,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick }) => {
       )}
 
       {/* Newsletter Signup Section */}
-      {sectionFlags.newsletter && (
+      {sections.newsletter && (
         <section className="py-20 px-4 sm:px-6 lg:px-8 bg-lp-blue-600">
         <div className="max-w-4xl mx-auto text-center">
           <Mail className="h-16 w-16 text-white mx-auto mb-4" />
@@ -726,7 +694,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick }) => {
       )}
 
       {/* Footer Section */}
-      {sectionFlags.footer && (
+      {sections.footer && (
         <footer className="bg-gray-900 text-white py-12 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">

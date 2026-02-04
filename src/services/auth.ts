@@ -8,7 +8,6 @@ import {
   updateProfile,
   sendEmailVerification,
   GoogleAuthProvider,
-  signInWithCredential,
   signInWithPopup
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
@@ -18,7 +17,6 @@ import {
   UserRole, 
   LoginCredentials, 
   RegisterData,
-  AuthState,
   ROLE_PERMISSIONS,
   Permission
 } from '../types/auth';

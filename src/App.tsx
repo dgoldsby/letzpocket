@@ -40,11 +40,6 @@ function AppContent() {
     };
   }, []);
 
-  const handleLoginSuccess = () => {
-    setCurrentPage('dashboard');
-    setShowLoginModal(false);
-  };
-
   const handleLogout = async () => {
     try {
       await logout();
