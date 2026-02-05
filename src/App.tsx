@@ -10,6 +10,7 @@ import Properties from './components/Properties';
 import LandingPage from './components/LandingPage';
 import { LoginModal } from './components/LoginModal';
 import { AdminPanel } from './components/AdminPanel';
+import { trackPageView, PAGE_NAMES, trackEvent, EVENT_CATEGORIES, EVENT_ACTIONS, trackError } from './lib/analytics';
 
 function AppContent() {
   const { user, loading, isAuthenticated, logout } = useAuth();
@@ -40,13 +41,31 @@ function AppContent() {
     };
   }, []);
 
+  // Track page changes
+  React.useEffect(() => {
+    const pageNameMap: Record<string, string> = {
+      'landing': PAGE_NAMES.HOME,
+      'dashboard': PAGE_NAMES.DASHBOARD,
+      'agreement-checker': PAGE_NAMES.AGREEMENT_REVIEW,
+      'yield-calculator': PAGE_NAMES.YIELD_CALCULATOR,
+      'price-estimator': PAGE_NAMES.PRICE_ESTIMATOR,
+      'properties': PAGE_NAMES.PROPERTY_ANALYTICS,
+      'admin': PAGE_NAMES.ADMIN_PANEL
+    };
+
+    const pageName = pageNameMap[currentPage] || PAGE_NAMES.HOME;
+    trackPageView(pageName);
+  }, [currentPage]);
+
   const handleLogout = async () => {
     try {
+      trackEvent(EVENT_ACTIONS.LOGOUT, EVENT_CATEGORIES.AUTHENTICATION);
       await logout();
       setCurrentPage('landing');
       setShowLoginModal(false);
     } catch (error) {
       console.error('Logout failed:', error);
+      trackError('logout_failed', error instanceof Error ? error.message : 'Unknown error');
     }
   };
 

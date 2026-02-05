@@ -8,6 +8,7 @@ import { openaiService } from '../services/openai';
 import { useSignInControl } from '../hooks/useSignInControl';
 import { useStrapiSections } from '../hooks/useStrapiContent';
 import { useStrapiHero } from '../hooks/useStrapiContent';
+import { trackCTAClick, trackEvent, EVENT_CATEGORIES, EVENT_ACTIONS, trackFormInteraction, trackFeatureUsage, trackError, PAGE_NAMES } from '../lib/analytics';
 import { 
   Shield, 
   FileText, 
@@ -42,7 +43,13 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
+  // Track page view on mount
+  React.useEffect(() => {
+    trackEvent(EVENT_ACTIONS.PAGE_VIEW, EVENT_CATEGORIES.NAVIGATION, PAGE_NAMES.HOME);
+  }, []);
+
   const handleSignInClick = () => {
+    trackCTAClick('sign_in', 'navigation');
     if (isSignInDisabled) {
       alert(disabledMessage);
       return;
@@ -69,10 +76,12 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick }) => {
     setChatMessages(prev => [...prev, { role: 'user', content: userMessage }]);
 
     try {
+      trackFeatureUsage('chatbot', 'message_sent', 'lettings_assistant');
       const assistantMessage = await openaiService.askAboutLettings(userMessage);
       setChatMessages(prev => [...prev, { role: 'assistant', content: assistantMessage }]);
     } catch (error) {
       console.error('Chat error:', error);
+      trackError('chatbot_error', error instanceof Error ? error.message : 'Unknown error', 'lettings_assistant');
       
       // Check if it's a quota error
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -94,22 +103,27 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick }) => {
 
   const handleNewsletterSignup = async (e: React.FormEvent) => {
     e.preventDefault();
+    trackFormInteraction(EVENT_ACTIONS.FORM_START, 'newsletter_signup');
     setIsSubmitting(true);
     
     try {
       const result = await mailchimpService.addSubscriber(email);
       
       if (result.success) {
+        trackFormInteraction(EVENT_ACTIONS.FORM_COMPLETE, 'newsletter_signup');
+        trackCTAClick('newsletter_subscribe', 'footer_section');
         setSubmitted(true);
         setEmail('');
       } else {
         // Handle error - for now, still show success to provide good UX
         console.error('Newsletter signup failed:', result.message);
+        trackError('newsletter_signup_failed', result.message, 'footer_section');
         setSubmitted(true);
         setEmail('');
       }
     } catch (error) {
       console.error('Newsletter signup error:', error);
+      trackError('newsletter_signup_error', error instanceof Error ? error.message : 'Unknown error', 'footer_section');
       // Still show success to provide good UX
       setSubmitted(true);
       setEmail('');
@@ -120,6 +134,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick }) => {
 
   const handleFreeReview = async (e: React.FormEvent) => {
     e.preventDefault();
+    trackFormInteraction(EVENT_ACTIONS.FORM_START, 'free_review');
     setIsSubmitting(true);
     
     try {
@@ -127,6 +142,9 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick }) => {
       const result = await mailchimpService.addWarmLead(reviewEmail);
       
       if (result.success) {
+        trackFormInteraction(EVENT_ACTIONS.FORM_COMPLETE, 'free_review');
+        trackCTAClick('free_review_submit', 'hero_section');
+        trackFeatureUsage('agreement_checker', 'upload_started', 'free_review');
         // TODO: Upload file to storage and trigger analysis
         console.log('File uploaded for analysis:', reviewFile?.name);
         
@@ -135,9 +153,11 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick }) => {
         setReviewFile(null);
       } else {
         console.error('Free review failed:', result.message);
+        trackError('free_review_failed', result.message, 'hero_section');
       }
     } catch (error) {
       console.error('Free review error:', error);
+      trackError('free_review_error', error instanceof Error ? error.message : 'Unknown error', 'hero_section');
     } finally {
       setIsSubmitting(false);
     }
@@ -216,6 +236,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick }) => {
       ],
       highlighted: false,
       action: () => {
+        trackCTAClick('free_review_pricing', 'pricing_section');
         const freeReviewSection = document.getElementById('free-review-section');
         if (freeReviewSection) {
           freeReviewSection.scrollIntoView({ behavior: 'smooth' });
@@ -236,7 +257,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick }) => {
         'Priority support'
       ],
       highlighted: true,
-      action: () => {} // TODO: Navigate to signup
+      action: () => {
+        trackCTAClick('professional_plan', 'pricing_section');
+        // TODO: Navigate to signup
+      }
     },
     {
       name: 'Enterprise',
@@ -251,7 +275,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick }) => {
         'Advanced analytics'
       ],
       highlighted: false,
-      action: () => {} // TODO: Contact sales
+      action: () => {
+        trackCTAClick('enterprise_plan', 'pricing_section');
+        // TODO: Contact sales
+      }
     }
   ];
 
@@ -267,6 +294,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick }) => {
               </div>
               <div className="flex items-center space-x-4">
                 <Button variant="ghost" onClick={() => {
+                  trackCTAClick('free_review_navigation', 'header');
                   const freeReviewSection = document.getElementById('free-review-section');
                   if (freeReviewSection) {
                     freeReviewSection.scrollIntoView({ behavior: 'smooth' });
@@ -302,6 +330,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick }) => {
                   size="lg" 
                   className="text-lg px-8 py-4 bg-lp-orange-500 text-white hover:bg-lp-orange-600"
                   onClick={() => {
+                    trackCTAClick('chatbot_start', 'hero_section');
                     const element = document.getElementById('chatbot-section');
                     element?.scrollIntoView({ behavior: 'smooth' });
                   }}
@@ -314,6 +343,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick }) => {
                   size="lg" 
                   className="text-lg px-8 py-4 bg-lp-blue-600 text-white hover:bg-lp-blue-700"
                   onClick={() => {
+                    trackCTAClick('view_features', 'hero_section');
                     const featuresSection = document.getElementById('features-section');
                     if (featuresSection) {
                       featuresSection.scrollIntoView({ behavior: 'smooth' });
@@ -485,7 +515,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick }) => {
             <Button 
               size="lg" 
               className="text-lg px-8 py-4"
-              onClick={() => setShowFreeReview(true)}
+              onClick={() => {
+                trackCTAClick('free_review_start', 'free_review_section');
+                setShowFreeReview(true);
+              }}
             >
               <FileText className="mr-2 h-5 w-5" />
               Start Free Review
