@@ -64,6 +64,18 @@ window.gtag('config', 'GA_MEASUREMENT_ID', {
 - **Newsletter**: Email subscription
 - **Chatbot**: Message sending, errors
 
+### Specific CTA Event Names
+- `cta_bot_start`: Chatbot start button
+- `cta_features_view`: View features button
+- `cta_sign_in`: Sign in button
+- `cta_free_review_start`: Start free review button
+- `cta_free_review_navigation`: Free review navigation link
+- `cta_free_review_pricing`: Free review from pricing section
+- `cta_professional_plan`: Professional plan selection
+- `cta_enterprise_plan`: Enterprise plan selection
+- `cta_newsletter_subscribe`: Newsletter subscription
+- `cta_chatbot_start`: Chatbot interaction start
+
 ### Form Tracking
 - Form start (when user begins interaction)
 - Form completion (successful submission)

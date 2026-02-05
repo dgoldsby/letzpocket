@@ -54,11 +54,17 @@ export const EVENT_ACTIONS = {
   VIEW_ANALYTICS: 'view_analytics',
   DOWNLOAD_REPORT: 'download_report',
   
-  // Conversion
-  CTA_CLICK: 'cta_click',
-  SIGNUP_CLICK: 'signup_click',
-  DEMO_REQUEST: 'demo_request',
-  CONTACT_REQUEST: 'contact_request',
+  // CTA Actions - More specific naming
+  CTA_BOT_START: 'cta_bot_start',
+  CTA_FEATURES_VIEW: 'cta_features_view',
+  CTA_SIGN_IN: 'cta_sign_in',
+  CTA_FREE_REVIEW_START: 'cta_free_review_start',
+  CTA_FREE_REVIEW_NAVIGATION: 'cta_free_review_navigation',
+  CTA_FREE_REVIEW_PRICING: 'cta_free_review_pricing',
+  CTA_PROFESSIONAL_PLAN: 'cta_professional_plan',
+  CTA_ENTERPRISE_PLAN: 'cta_enterprise_plan',
+  CTA_NEWSLETTER_SUBSCRIBE: 'cta_newsletter_subscribe',
+  CTA_CHATBOT_START: 'cta_chatbot_start',
   
   // Form Submission
   FORM_START: 'form_start',
@@ -115,12 +121,12 @@ export const trackEvent = (
   window.gtag('event', action, eventParams);
 };
 
-// Track CTA clicks specifically
-export const trackCTAClick = (ctaName: string, location: string, value?: number): void => {
+// Track specific CTA clicks with unique action names
+export const trackCTAClick = (ctaAction: string, location: string, value?: number): void => {
   trackEvent(
-    EVENT_ACTIONS.CTA_CLICK,
+    ctaAction,
     EVENT_CATEGORIES.CONVERSION,
-    `${ctaName}_${location}`,
+    location,
     value
   );
 };

@@ -49,7 +49,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick }) => {
   }, []);
 
   const handleSignInClick = () => {
-    trackCTAClick('sign_in', 'navigation');
+    trackCTAClick(EVENT_ACTIONS.CTA_SIGN_IN, 'header');
     if (isSignInDisabled) {
       alert(disabledMessage);
       return;
@@ -111,7 +111,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick }) => {
       
       if (result.success) {
         trackFormInteraction(EVENT_ACTIONS.FORM_COMPLETE, 'newsletter_signup');
-        trackCTAClick('newsletter_subscribe', 'footer_section');
+        trackCTAClick(EVENT_ACTIONS.CTA_NEWSLETTER_SUBSCRIBE, 'footer_section');
         setSubmitted(true);
         setEmail('');
       } else {
@@ -143,7 +143,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick }) => {
       
       if (result.success) {
         trackFormInteraction(EVENT_ACTIONS.FORM_COMPLETE, 'free_review');
-        trackCTAClick('free_review_submit', 'hero_section');
+        trackCTAClick(EVENT_ACTIONS.CTA_FREE_REVIEW_START, 'hero_section');
         trackFeatureUsage('agreement_checker', 'upload_started', 'free_review');
         // TODO: Upload file to storage and trigger analysis
         console.log('File uploaded for analysis:', reviewFile?.name);
@@ -236,7 +236,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick }) => {
       ],
       highlighted: false,
       action: () => {
-        trackCTAClick('free_review_pricing', 'pricing_section');
+        trackCTAClick(EVENT_ACTIONS.CTA_FREE_REVIEW_PRICING, 'pricing_section');
         const freeReviewSection = document.getElementById('free-review-section');
         if (freeReviewSection) {
           freeReviewSection.scrollIntoView({ behavior: 'smooth' });
@@ -258,7 +258,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick }) => {
       ],
       highlighted: true,
       action: () => {
-        trackCTAClick('professional_plan', 'pricing_section');
+        trackCTAClick(EVENT_ACTIONS.CTA_PROFESSIONAL_PLAN, 'pricing_section');
         // TODO: Navigate to signup
       }
     },
@@ -276,7 +276,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick }) => {
       ],
       highlighted: false,
       action: () => {
-        trackCTAClick('enterprise_plan', 'pricing_section');
+        trackCTAClick(EVENT_ACTIONS.CTA_ENTERPRISE_PLAN, 'pricing_section');
         // TODO: Contact sales
       }
     }
@@ -294,7 +294,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick }) => {
               </div>
               <div className="flex items-center space-x-4">
                 <Button variant="ghost" onClick={() => {
-                  trackCTAClick('free_review_navigation', 'header');
+                  trackCTAClick(EVENT_ACTIONS.CTA_FREE_REVIEW_NAVIGATION, 'header');
                   const freeReviewSection = document.getElementById('free-review-section');
                   if (freeReviewSection) {
                     freeReviewSection.scrollIntoView({ behavior: 'smooth' });
@@ -330,7 +330,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick }) => {
                   size="lg" 
                   className="text-lg px-8 py-4 bg-lp-orange-500 text-white hover:bg-lp-orange-600"
                   onClick={() => {
-                    trackCTAClick('chatbot_start', 'hero_section');
+                    trackCTAClick(EVENT_ACTIONS.CTA_CHATBOT_START, 'hero_section');
                     const element = document.getElementById('chatbot-section');
                     element?.scrollIntoView({ behavior: 'smooth' });
                   }}
@@ -343,7 +343,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick }) => {
                   size="lg" 
                   className="text-lg px-8 py-4 bg-lp-blue-600 text-white hover:bg-lp-blue-700"
                   onClick={() => {
-                    trackCTAClick('view_features', 'hero_section');
+                    trackCTAClick(EVENT_ACTIONS.CTA_FEATURES_VIEW, 'hero_section');
                     const featuresSection = document.getElementById('features-section');
                     if (featuresSection) {
                       featuresSection.scrollIntoView({ behavior: 'smooth' });
@@ -516,7 +516,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLoginClick }) => {
               size="lg" 
               className="text-lg px-8 py-4"
               onClick={() => {
-                trackCTAClick('free_review_start', 'free_review_section');
+                trackCTAClick(EVENT_ACTIONS.CTA_FREE_REVIEW_START, 'free_review_section');
                 setShowFreeReview(true);
               }}
             >
