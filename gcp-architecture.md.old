@@ -186,7 +186,7 @@ Internet → Firebase Hosting (CDN) → React App
 
 ## Deployment Information
 
-- **Last Deployed:** Wed Feb  4 08:37:21 GMT 2026
+- **Last Deployed:** Wed Feb  4 13:40:12 GMT 2026
 - **Deployed By:** darrengoldsby
-- **Git Commit:** 3837f882
+- **Git Commit:** c4bb7a7e
 - **Build Version:** 0.1.0

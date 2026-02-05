@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Shield, Users, Settings, FileText, Building, ChevronRight, AlertCircle, CheckCircle, ArrowLeft } from 'lucide-react';
+import { Shield, Users, Settings, ChevronRight, AlertCircle, CheckCircle, ArrowLeft, Database, Building } from 'lucide-react';
 import { Button } from './ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Input } from './ui/input';
@@ -8,7 +8,7 @@ import { useAuth } from '../contexts/AuthContext';
 import { useRole } from '../contexts/RoleContext';
 import { UserRole } from '../types/auth';
 import { adminService } from '../services/admin';
-import { ContentManagement } from './ContentManagement';
+import PropertyDataAdmin from './PropertyDataAdmin';
 
 interface UserManagementProps {
   onClose: () => void;
@@ -187,7 +187,7 @@ export function UserManagement({ onClose }: UserManagementProps) {
 export function AdminPanel() {
   const { user } = useAuth();
   const { hasPermission, activeRole, availableRoles, setActiveRole } = useRole();
-  const [currentView, setCurrentView] = useState<'dashboard' | 'content' | 'users'>('dashboard');
+  const [currentView, setCurrentView] = useState<'dashboard' | 'users' | 'propertyData'>('dashboard');
 
   console.log('AdminPanel Debug:', { 
     user: user ? { uid: user.uid, email: user.email, roles: user.roles, activeRole: user.activeRole } : null,
@@ -250,7 +250,7 @@ export function AdminPanel() {
 
   const renderContent = () => {
     switch (currentView) {
-      case 'content':
+      case 'propertyData':
         return (
           <div>
             <div className="mb-6">
@@ -262,7 +262,7 @@ export function AdminPanel() {
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back to Admin Dashboard
               </Button>
-              <ContentManagement />
+              <PropertyDataAdmin />
             </div>
           </div>
         );
@@ -288,7 +288,7 @@ export function AdminPanel() {
             <div className="mb-8">
               <h1 className="text-3xl font-bold text-gray-900">Admin Dashboard</h1>
               <p className="text-gray-600 mt-2">
-                Manage content and users
+                Manage users and system settings
               </p>
             </div>
 
@@ -361,19 +361,19 @@ export function AdminPanel() {
               <Card className="hover:shadow-lg transition-shadow cursor-pointer">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
-                    <FileText className="h-5 w-5" />
-                    Content Management
+                    <Database className="h-5 w-5" />
+                    PropertyData API
                   </CardTitle>
                   <CardDescription>
-                    Edit landing page sections and content
+                    Manage API quotas and user plans
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <Button 
                     className="w-full"
-                    onClick={() => setCurrentView('content')}
+                    onClick={() => setCurrentView('propertyData')}
                   >
-                    Manage Content
+                    Manage API
                     <ChevronRight className="ml-2 h-4 w-4" />
                   </Button>
                 </CardContent>

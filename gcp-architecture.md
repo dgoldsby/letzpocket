@@ -1,192 +1,54 @@
-# LetzPocket GCP Architecture Documentation
+# LetzPocket GCP Architecture
+
+*Last updated: 2026-02-04T14:41:14.950Z*
 
 ## Overview
-LetzPocket is a UK rental property management platform built with React and deployed on Google Cloud Platform (GCP).
+LetzPocket is a UK property management platform built with modern web technologies and deployed on Google Cloud Platform.
 
 ## Architecture Components
 
-### Frontend
-- **Framework:** React 18 with TypeScript
-- **Hosting:** Firebase Hosting (static site)
-- **Domain:** letzpocket-site.web.app
-- **Build Tool:** Create React App
-- **Styling:** Tailwind CSS
+### Frontend (React Application)
+- **Framework**: React 19.2.4 with TypeScript
+- **Styling**: Tailwind CSS with Radix UI components
+- **Hosting**: Firebase Hosting with global CDN
+- **Authentication**: Firebase Authentication
+- **CMS Integration**: Strapi CMS
 
-### Backend Services
-- **CMS:** Strapi Headless CMS
-- **Database:** PostgreSQL (via Strapi)
-- **Authentication:** Firebase Authentication
-- **API:** RESTful APIs (Strapi + Firebase)
+### Backend (Strapi CMS)
+- **Framework**: Strapi 5.34.0
+- **Database**: PostgreSQL on Cloud SQL
+- **Hosting**: Google Cloud Run
+- **Container**: Docker with Node.js 20
+- **Storage**: Google Artifact Registry
 
-### GCP Services Used
-
-#### Firebase Hosting
-- **Purpose:** Static website hosting
-- **Features:** 
-  - Global CDN distribution
-  - HTTPS by default
-  - Automatic scaling
-  - Custom domain support
-- **Configuration:** `firebase.json`
-
-#### Firebase Authentication
-- **Purpose:** User authentication and authorization
-- **Features:**
-  - Email/password authentication
-  - Social login support
-  - Session management
-  - Role-based access control
-
-#### Firestore Database
-- **Purpose:** NoSQL database for real-time data
-- **Features:**
-  - Real-time synchronization
-  - Offline support
-  - Scalable document database
-  - Security rules
-
-#### Cloud Functions (Optional)
-- **Purpose:** Server-side business logic
-- **Features:**
-  - Event-driven functions
-  - HTTP endpoints
-  - Background processing
-  - Auto-scaling
-
-## Deployment Architecture
-
-### CI/CD Pipeline
-```mermaid
-graph LR
-    A[Developer] --> B[Git Push]
-    B --> C[Build React App]
-    C --> D[Firebase Deploy]
-    D --> E[Update Documentation]
-    E --> F[Live Site]
-```
-
-### Network Architecture
-```
-Internet → Firebase Hosting (CDN) → React App
-                                    ↓
-                              Firebase Auth
-                                    ↓
-                              Strapi CMS
-                                    ↓
-                              PostgreSQL DB
-```
-
-## Security Considerations
-
-### Firebase Security Rules
-- Firestore rules restrict data access
-- Authentication required for admin functions
-- CORS properly configured
-
-### Best Practices
-- Environment variables for sensitive data
-- HTTPS enforced everywhere
-- Regular security updates
-- Input validation and sanitization
-
-## Performance Optimization
-
-### Frontend
-- Code splitting and lazy loading
-- Image optimization
-- Bundle size optimization
-- Service worker for caching
-
-### Backend
-- Database indexing
-- API response caching
-- CDN for static assets
-- Connection pooling
-
-## Monitoring and Logging
-
-### Firebase Monitoring
-- Performance monitoring
-- Error tracking
-- Usage analytics
-- Custom events
-
-### Strapi Monitoring
-- API request logging
-- Database performance
-- User activity tracking
-- Error reporting
-
-## Scalability Considerations
-
-### Horizontal Scaling
-- Firebase Hosting auto-scales
-- Firestore handles concurrent users
-- Strapi can be containerized
-- Database can be sharded
-
-### Vertical Scaling
-- Increase Firebase plan limits
-- Upgrade Strapi server resources
-- Optimize database performance
-- Implement caching layers
-
-## Disaster Recovery
-
-### Backup Strategy
-- Automated database backups
-- Git repository for code
-- Firebase data exports
-- Documentation versioning
-
-### Recovery Procedures
-- Rollback to previous deployment
-- Restore from database backups
-- Emergency contact procedures
-- Service restoration checklist
-
-## Cost Management
-
-### Firebase Pricing
-- Hosting: Free tier + pay-as-you-go
-- Authentication: Free tier + usage-based
-- Firestore: Free tier + usage-based
-- Functions: Pay-per-invocation
-
-### Strapi Hosting
-- Self-hosted: Server costs
-- Cloud: Platform fees
-- Database: Storage and compute
-- Bandwidth: Data transfer costs
-
-## Future Enhancements
-
-### Planned Features
-- Real-time notifications
-- Advanced analytics dashboard
-- Mobile app development
-- API rate limiting
-- Advanced search functionality
-
-### Technical Improvements
-- Microservices architecture
-- GraphQL API implementation
-- Advanced caching strategies
-- Machine learning integration
-- Progressive Web App (PWA)
-
-## Contact Information
-- **Project:** LetzPocket
-- **Repository:** [Git Repository URL]
-- **Documentation:** Last updated: $(date)
-- **Deployment:** Automated via deploy.sh script
-
----
-*This documentation is automatically generated during deployment process*
+### Infrastructure
+- **Provider**: Google Cloud Platform
+- **Region**: europe-west2 (London)
+- **Services**: Firebase Hosting, Cloud Run, Cloud SQL, Artifact Registry
 
 ## Deployment Information
+- **Frontend URL**: https://letzpocket-site.web.app
+- **CMS URL**: https://letzpocket-strapi-557937099852.europe-west2.run.app
+- **Admin URL**: https://letzpocket-strapi-557937099852.europe-west2.run.app/admin
 
-- **Last Deployed:** Wed Feb  4 10:29:11 GMT 2026
-- **Deployed By:** darrengoldsby
-- **Git Commit:** 3837f882
-- **Build Version:** 0.1.0
+## Security & Compliance
+- **HTTPS**: Enabled across all services
+- **Data Protection**: GDPR compliant
+- **Authentication**: Firebase Auth with role-based access
+- **API Security**: JWT tokens and CORS configuration
+
+## Monitoring & Logging
+- **Error Tracking**: Console errors and browser monitoring
+- **Performance**: Web Vitals tracking
+- **Uptime**: Firebase Hosting monitoring
+- **Logs**: Cloud Run logging integration
+
+## Development Workflow
+- **Version Control**: Git with GitHub
+- **CI/CD**: Automated deployment scripts
+- **Environment Management**: Development, Staging, Production
+- **Code Quality**: ESLint, TypeScript, testing framework
+
+---
+
+*This documentation is automatically generated during deployment.*

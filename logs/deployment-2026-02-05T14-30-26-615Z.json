@@ -1,0 +1,436 @@
+{
+  "timestamp": "2026-02-05T14:30:20.702Z",
+  "systemInfo": {
+    "node": "v24.10.0",
+    "npm": "11.6.0",
+    "git": "git version 2.51.0",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "applications": {
+    "main": {
+      "packageJson": {
+        "name": "letzpocket",
+        "version": "0.1.0",
+        "private": true,
+        "homepage": "https://letzpocket-site.web.app",
+        "dependencies": {
+          "@radix-ui/react-checkbox": "^1.3.3",
+          "@radix-ui/react-select": "^2.2.6",
+          "@testing-library/dom": "^10.4.1",
+          "@types/node": "20.11.24",
+          "@types/react": "^19.2.10",
+          "@types/react-dom": "^19.2.3",
+          "ajv": "8.17.1",
+          "ajv-keywords": "5.1.0",
+          "autoprefixer": "^10.4.24",
+          "class-variance-authority": "^0.7.1",
+          "clsx": "^2.1.1",
+          "firebase": "^12.8.0",
+          "lucide-react": "^0.563.0",
+          "postcss": "^8.5.6",
+          "react": "^19.2.4",
+          "react-dom": "^19.2.4",
+          "react-scripts": "5.0.1",
+          "schema-utils": "4.3.3",
+          "tailwind-merge": "^3.4.0",
+          "tailwindcss": "^3.4.19",
+          "typescript": "4.9.5",
+          "web-vitals": "^2.1.4"
+        },
+        "scripts": {
+          "start": "react-scripts start",
+          "build": "react-scripts build",
+          "test": "jest",
+          "test:watch": "jest --watch",
+          "test:coverage": "jest --coverage",
+          "test:ci": "jest --coverage --watchAll=false --passWithNoTests",
+          "eject": "react-scripts eject"
+        },
+        "eslintConfig": {
+          "extends": [
+            "react-app",
+            "react-app/jest"
+          ]
+        },
+        "browserslist": {
+          "production": [
+            ">0.2%",
+            "not dead",
+            "not op_mini all"
+          ],
+          "development": [
+            "last 1 chrome version",
+            "last 1 firefox version",
+            "last 1 safari version"
+          ]
+        },
+        "devDependencies": {
+          "@testing-library/jest-dom": "^6.9.1",
+          "@testing-library/react": "^16.3.2",
+          "@testing-library/user-event": "^14.6.1",
+          "@types/jest": "^30.0.0",
+          "babel-jest": "^30.2.0",
+          "identity-obj-proxy": "^3.0.0",
+          "jest": "^30.2.0",
+          "ts-jest": "^29.4.6"
+        }
+      },
+      "dependencies": [
+        {
+          "name": "@radix-ui/react-checkbox",
+          "version": "^1.3.3",
+          "type": "production",
+          "category": "main-app"
+        },
+        {
+          "name": "@radix-ui/react-select",
+          "version": "^2.2.6",
+          "type": "production",
+          "category": "main-app"
+        },
+        {
+          "name": "@testing-library/dom",
+          "version": "^10.4.1",
+          "type": "production",
+          "category": "main-app"
+        },
+        {
+          "name": "@testing-library/jest-dom",
+          "version": "^6.9.1",
+          "type": "development",
+          "category": "main-app"
+        },
+        {
+          "name": "@testing-library/react",
+          "version": "^16.3.2",
+          "type": "development",
+          "category": "main-app"
+        },
+        {
+          "name": "@testing-library/user-event",
+          "version": "^14.6.1",
+          "type": "development",
+          "category": "main-app"
+        },
+        {
+          "name": "@types/jest",
+          "version": "^30.0.0",
+          "type": "development",
+          "category": "main-app"
+        },
+        {
+          "name": "@types/node",
+          "version": "20.11.24",
+          "type": "production",
+          "category": "main-app"
+        },
+        {
+          "name": "@types/react",
+          "version": "^19.2.10",
+          "type": "production",
+          "category": "main-app"
+        },
+        {
+          "name": "@types/react-dom",
+          "version": "^19.2.3",
+          "type": "production",
+          "category": "main-app"
+        },
+        {
+          "name": "ajv",
+          "version": "8.17.1",
+          "type": "production",
+          "category": "main-app"
+        },
+        {
+          "name": "ajv-keywords",
+          "version": "5.1.0",
+          "type": "production",
+          "category": "main-app"
+        },
+        {
+          "name": "autoprefixer",
+          "version": "^10.4.24",
+          "type": "production",
+          "category": "main-app"
+        },
+        {
+          "name": "babel-jest",
+          "version": "^30.2.0",
+          "type": "development",
+          "category": "main-app"
+        },
+        {
+          "name": "class-variance-authority",
+          "version": "^0.7.1",
+          "type": "production",
+          "category": "main-app"
+        },
+        {
+          "name": "clsx",
+          "version": "^2.1.1",
+          "type": "production",
+          "category": "main-app"
+        },
+        {
+          "name": "firebase",
+          "version": "^12.8.0",
+          "type": "production",
+          "category": "main-app"
+        },
+        {
+          "name": "identity-obj-proxy",
+          "version": "^3.0.0",
+          "type": "development",
+          "category": "main-app"
+        },
+        {
+          "name": "jest",
+          "version": "^30.2.0",
+          "type": "development",
+          "category": "main-app"
+        },
+        {
+          "name": "lucide-react",
+          "version": "^0.563.0",
+          "type": "production",
+          "category": "main-app"
+        },
+        {
+          "name": "postcss",
+          "version": "^8.5.6",
+          "type": "production",
+          "category": "main-app"
+        },
+        {
+          "name": "react",
+          "version": "^19.2.4",
+          "type": "production",
+          "category": "main-app"
+        },
+        {
+          "name": "react-dom",
+          "version": "^19.2.4",
+          "type": "production",
+          "category": "main-app"
+        },
+        {
+          "name": "react-scripts",
+          "version": "5.0.1",
+          "type": "production",
+          "category": "main-app"
+        },
+        {
+          "name": "schema-utils",
+          "version": "4.3.3",
+          "type": "production",
+          "category": "main-app"
+        },
+        {
+          "name": "tailwind-merge",
+          "version": "^3.4.0",
+          "type": "production",
+          "category": "main-app"
+        },
+        {
+          "name": "tailwindcss",
+          "version": "^3.4.19",
+          "type": "production",
+          "category": "main-app"
+        },
+        {
+          "name": "ts-jest",
+          "version": "^29.4.6",
+          "type": "development",
+          "category": "main-app"
+        },
+        {
+          "name": "typescript",
+          "version": "4.9.5",
+          "type": "production",
+          "category": "main-app"
+        },
+        {
+          "name": "web-vitals",
+          "version": "^2.1.4",
+          "type": "production",
+          "category": "main-app"
+        }
+      ]
+    },
+    "cms": {
+      "packageJson": {
+        "name": "cms",
+        "version": "0.1.0",
+        "private": true,
+        "description": "A Strapi application",
+        "scripts": {
+          "build": "strapi build",
+          "console": "strapi console",
+          "deploy": "strapi deploy",
+          "dev": "strapi develop",
+          "develop": "strapi develop",
+          "start": "strapi start",
+          "strapi": "strapi",
+          "upgrade": "npx @strapi/upgrade latest",
+          "upgrade:dry": "npx @strapi/upgrade latest --dry"
+        },
+        "dependencies": {
+          "@strapi/plugin-cloud": "5.34.0",
+          "@strapi/plugin-users-permissions": "5.34.0",
+          "@strapi/strapi": "5.34.0",
+          "better-sqlite3": "12.4.1",
+          "react": "^18.0.0",
+          "react-dom": "^18.0.0",
+          "react-router-dom": "^6.0.0",
+          "styled-components": "^6.0.0"
+        },
+        "devDependencies": {
+          "@types/node": "^20",
+          "@types/react": "^18",
+          "@types/react-dom": "^18",
+          "typescript": "^5"
+        },
+        "engines": {
+          "node": ">=20.0.0 <=24.x.x",
+          "npm": ">=6.0.0"
+        },
+        "strapi": {
+          "uuid": "596d8b99-f4a7-47e3-acaf-4359b128c369",
+          "installId": "be1cae2e150ea009c8a35024ba08d9925a6b7c619e5425261c2238d0f438e0e1"
+        }
+      },
+      "dependencies": [
+        {
+          "name": "@strapi/plugin-cloud",
+          "version": "5.34.0",
+          "type": "production",
+          "category": "cms"
+        },
+        {
+          "name": "@strapi/plugin-users-permissions",
+          "version": "5.34.0",
+          "type": "production",
+          "category": "cms"
+        },
+        {
+          "name": "@strapi/strapi",
+          "version": "5.34.0",
+          "type": "production",
+          "category": "cms"
+        },
+        {
+          "name": "@types/node",
+          "version": "^20",
+          "type": "development",
+          "category": "cms"
+        },
+        {
+          "name": "@types/react",
+          "version": "^18",
+          "type": "development",
+          "category": "cms"
+        },
+        {
+          "name": "@types/react-dom",
+          "version": "^18",
+          "type": "development",
+          "category": "cms"
+        },
+        {
+          "name": "better-sqlite3",
+          "version": "12.4.1",
+          "type": "production",
+          "category": "cms"
+        },
+        {
+          "name": "react",
+          "version": "^18.0.0",
+          "type": "production",
+          "category": "cms"
+        },
+        {
+          "name": "react-dom",
+          "version": "^18.0.0",
+          "type": "production",
+          "category": "cms"
+        },
+        {
+          "name": "react-router-dom",
+          "version": "^6.0.0",
+          "type": "production",
+          "category": "cms"
+        },
+        {
+          "name": "styled-components",
+          "version": "^6.0.0",
+          "type": "production",
+          "category": "cms"
+        },
+        {
+          "name": "typescript",
+          "version": "^5",
+          "type": "development",
+          "category": "cms"
+        }
+      ]
+    }
+  },
+  "outdated": [
+    {
+      "name": "firebase",
+      "version": "^12.8.0",
+      "type": "production",
+      "category": "main-app",
+      "latest": "12.9.0",
+      "current": "12.8.0",
+      "needsUpdate": true
+    },
+    {
+      "name": "typescript",
+      "version": "4.9.5",
+      "type": "production",
+      "category": "main-app",
+      "latest": "5.9.3",
+      "current": "4.9.5",
+      "needsUpdate": true
+    },
+    {
+      "name": "@strapi/strapi",
+      "version": "5.34.0",
+      "type": "production",
+      "category": "cms",
+      "latest": "5.35.0",
+      "current": "5.34.0",
+      "needsUpdate": true
+    },
+    {
+      "name": "react",
+      "version": "^18.0.0",
+      "type": "production",
+      "category": "cms",
+      "latest": "19.2.4",
+      "current": "18.0.0",
+      "needsUpdate": true
+    },
+    {
+      "name": "react-dom",
+      "version": "^18.0.0",
+      "type": "production",
+      "category": "cms",
+      "latest": "19.2.4",
+      "current": "18.0.0",
+      "needsUpdate": true
+    },
+    {
+      "name": "typescript",
+      "version": "^5",
+      "type": "development",
+      "category": "cms",
+      "latest": "5.9.3",
+      "current": "5",
+      "needsUpdate": true
+    }
+  ]
+}

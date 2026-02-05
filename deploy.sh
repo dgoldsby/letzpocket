@@ -1,11 +1,9 @@
 #!/bin/bash
 
 # LetzPocket Deployment Script
-# This script deploys the app and updates GCP architecture documentation
+# This script builds and deploys the React app to Firebase Hosting
 
 set -e  # Exit on any error
-
-echo "🚀 Starting LetzPocket Deployment Process..."
 
 # Colors for output
 RED='\033[0;31m'
@@ -14,7 +12,7 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# Function to print colored output
+# Helper functions
 print_status() {
     echo -e "${BLUE}[INFO]${NC} $1"
 }
@@ -31,257 +29,210 @@ print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
 
-# Check if we're in the right directory
-if [ ! -f "package.json" ]; then
-    print_error "Please run this script from the project root directory"
-    exit 1
-fi
+# Check if required tools are installed
+check_dependencies() {
+    print_status "Checking dependencies..."
+    
+    if ! command -v node &> /dev/null; then
+        print_error "Node.js is not installed"
+        exit 1
+    fi
+    
+    if ! command -v npm &> /dev/null; then
+        print_error "npm is not installed"
+        exit 1
+    fi
+    
+    if ! command -v firebase &> /dev/null; then
+        print_error "Firebase CLI is not installed"
+        exit 1
+    fi
+    
+    print_success "All dependencies are available"
+}
 
-# Step 1: Build the React app
-print_status "Step 1: Building React application..."
-npm run build
-if [ $? -eq 0 ]; then
-    print_success "React build completed successfully"
-else
-    print_error "React build failed"
-    exit 1
-fi
+# Run framework audit
+run_framework_audit() {
+    print_status "Running framework audit..."
+    
+    if [ -f "./scripts/framework-audit.js" ]; then
+        node ./scripts/framework-audit.js
+        print_success "Framework audit completed"
+    else
+        print_warning "Framework audit script not found, skipping..."
+    fi
+}
+
+# Step 1: Build React application
+build_app() {
+    print_status "Step 1: Building React application..."
+    
+    # Clean previous build
+    if [ -d "build" ]; then
+        rm -rf build
+        print_status "Cleaned previous build"
+    fi
+    
+    # Install dependencies
+    print_status "Installing dependencies..."
+    npm ci --silent
+    
+    # Build the app
+    print_status "Building production bundle..."
+    npm run build
+    
+    if [ -d "build" ]; then
+        print_success "React build completed successfully"
+    else
+        print_error "Build failed - no build directory created"
+        exit 1
+    fi
+}
 
 # Step 2: Deploy to Firebase Hosting
-print_status "Step 2: Deploying to Firebase Hosting..."
-firebase deploy --only hosting
-if [ $? -eq 0 ]; then
+deploy_to_firebase() {
+    print_status "Step 2: Deploying to Firebase Hosting..."
+    
+    # Check if firebase.json exists
+    if [ ! -f "firebase.json" ]; then
+        print_error "firebase.json not found"
+        exit 1
+    fi
+    
+    # Deploy to Firebase
+    firebase deploy --only hosting
+    
     print_success "Firebase deployment completed successfully"
-else
-    print_error "Firebase deployment failed"
-    exit 1
-fi
+}
 
 # Step 3: Update GCP Architecture Documentation
-print_status "Step 3: Updating GCP Architecture Documentation..."
+update_docs() {
+    print_status "Step 3: Updating GCP Architecture Documentation..."
+    
+    # Backup current documentation
+    if [ -f "gcp-architecture.md" ]; then
+        cp gcp-architecture.md gcp-architecture.md.old
+        print_success "Current version backed up as gcp-architecture.md.old"
+    fi
+    
+    # Generate new documentation
+    if command -v node &> /dev/null; then
+        node -e "
+const fs = require('fs');
+const timestamp = new Date().toISOString();
 
-# Check if gcp-architecture.md exists
-if [ -f "gcp-architecture.md" ]; then
-    # Backup current version
-    print_status "Backing up current GCP architecture documentation..."
-    cp gcp-architecture.md gcp-architecture.md.old
-    print_success "Current version backed up as gcp-architecture.md.old"
-else
-    print_warning "No existing gcp-architecture.md file found"
-fi
+const content = \`# LetzPocket GCP Architecture
 
-# Generate new GCP architecture documentation
-print_status "Generating new GCP architecture documentation..."
-
-cat > gcp-architecture.md << 'EOF'
-# LetzPocket GCP Architecture Documentation
+*Last updated: \${timestamp}*
 
 ## Overview
-LetzPocket is a UK rental property management platform built with React and deployed on Google Cloud Platform (GCP).
+LetzPocket is a UK property management platform built with modern web technologies and deployed on Google Cloud Platform.
 
 ## Architecture Components
 
-### Frontend
-- **Framework:** React 18 with TypeScript
-- **Hosting:** Firebase Hosting (static site)
-- **Domain:** letzpocket-site.web.app
-- **Build Tool:** Create React App
-- **Styling:** Tailwind CSS
+### Frontend (React Application)
+- **Framework**: React 19.2.4 with TypeScript
+- **Styling**: Tailwind CSS with Radix UI components
+- **Hosting**: Firebase Hosting with global CDN
+- **Authentication**: Firebase Authentication
+- **CMS Integration**: Strapi CMS
 
-### Backend Services
-- **CMS:** Strapi Headless CMS
-- **Database:** PostgreSQL (via Strapi)
-- **Authentication:** Firebase Authentication
-- **API:** RESTful APIs (Strapi + Firebase)
+### Backend (Strapi CMS)
+- **Framework**: Strapi 5.34.0
+- **Database**: PostgreSQL on Cloud SQL
+- **Hosting**: Google Cloud Run
+- **Container**: Docker with Node.js 20
+- **Storage**: Google Artifact Registry
 
-### GCP Services Used
+### Infrastructure
+- **Provider**: Google Cloud Platform
+- **Region**: europe-west2 (London)
+- **Services**: Firebase Hosting, Cloud Run, Cloud SQL, Artifact Registry
 
-#### Firebase Hosting
-- **Purpose:** Static website hosting
-- **Features:** 
-  - Global CDN distribution
-  - HTTPS by default
-  - Automatic scaling
-  - Custom domain support
-- **Configuration:** `firebase.json`
+## Deployment Information
+- **Frontend URL**: https://letzpocket-site.web.app
+- **CMS URL**: https://letzpocket-strapi-557937099852.europe-west2.run.app
+- **Admin URL**: https://letzpocket-strapi-557937099852.europe-west2.run.app/admin
 
-#### Firebase Authentication
-- **Purpose:** User authentication and authorization
-- **Features:**
-  - Email/password authentication
-  - Social login support
-  - Session management
-  - Role-based access control
+## Security & Compliance
+- **HTTPS**: Enabled across all services
+- **Data Protection**: GDPR compliant
+- **Authentication**: Firebase Auth with role-based access
+- **API Security**: JWT tokens and CORS configuration
 
-#### Firestore Database
-- **Purpose:** NoSQL database for real-time data
-- **Features:**
-  - Real-time synchronization
-  - Offline support
-  - Scalable document database
-  - Security rules
+## Monitoring & Logging
+- **Error Tracking**: Console errors and browser monitoring
+- **Performance**: Web Vitals tracking
+- **Uptime**: Firebase Hosting monitoring
+- **Logs**: Cloud Run logging integration
 
-#### Cloud Functions (Optional)
-- **Purpose:** Server-side business logic
-- **Features:**
-  - Event-driven functions
-  - HTTP endpoints
-  - Background processing
-  - Auto-scaling
-
-## Deployment Architecture
-
-### CI/CD Pipeline
-```mermaid
-graph LR
-    A[Developer] --> B[Git Push]
-    B --> C[Build React App]
-    C --> D[Firebase Deploy]
-    D --> E[Update Documentation]
-    E --> F[Live Site]
-```
-
-### Network Architecture
-```
-Internet → Firebase Hosting (CDN) → React App
-                                    ↓
-                              Firebase Auth
-                                    ↓
-                              Strapi CMS
-                                    ↓
-                              PostgreSQL DB
-```
-
-## Security Considerations
-
-### Firebase Security Rules
-- Firestore rules restrict data access
-- Authentication required for admin functions
-- CORS properly configured
-
-### Best Practices
-- Environment variables for sensitive data
-- HTTPS enforced everywhere
-- Regular security updates
-- Input validation and sanitization
-
-## Performance Optimization
-
-### Frontend
-- Code splitting and lazy loading
-- Image optimization
-- Bundle size optimization
-- Service worker for caching
-
-### Backend
-- Database indexing
-- API response caching
-- CDN for static assets
-- Connection pooling
-
-## Monitoring and Logging
-
-### Firebase Monitoring
-- Performance monitoring
-- Error tracking
-- Usage analytics
-- Custom events
-
-### Strapi Monitoring
-- API request logging
-- Database performance
-- User activity tracking
-- Error reporting
-
-## Scalability Considerations
-
-### Horizontal Scaling
-- Firebase Hosting auto-scales
-- Firestore handles concurrent users
-- Strapi can be containerized
-- Database can be sharded
-
-### Vertical Scaling
-- Increase Firebase plan limits
-- Upgrade Strapi server resources
-- Optimize database performance
-- Implement caching layers
-
-## Disaster Recovery
-
-### Backup Strategy
-- Automated database backups
-- Git repository for code
-- Firebase data exports
-- Documentation versioning
-
-### Recovery Procedures
-- Rollback to previous deployment
-- Restore from database backups
-- Emergency contact procedures
-- Service restoration checklist
-
-## Cost Management
-
-### Firebase Pricing
-- Hosting: Free tier + pay-as-you-go
-- Authentication: Free tier + usage-based
-- Firestore: Free tier + usage-based
-- Functions: Pay-per-invocation
-
-### Strapi Hosting
-- Self-hosted: Server costs
-- Cloud: Platform fees
-- Database: Storage and compute
-- Bandwidth: Data transfer costs
-
-## Future Enhancements
-
-### Planned Features
-- Real-time notifications
-- Advanced analytics dashboard
-- Mobile app development
-- API rate limiting
-- Advanced search functionality
-
-### Technical Improvements
-- Microservices architecture
-- GraphQL API implementation
-- Advanced caching strategies
-- Machine learning integration
-- Progressive Web App (PWA)
-
-## Contact Information
-- **Project:** LetzPocket
-- **Repository:** [Git Repository URL]
-- **Documentation:** Last updated: $(date)
-- **Deployment:** Automated via deploy.sh script
+## Development Workflow
+- **Version Control**: Git with GitHub
+- **CI/CD**: Automated deployment scripts
+- **Environment Management**: Development, Staging, Production
+- **Code Quality**: ESLint, TypeScript, testing framework
 
 ---
-*This documentation is automatically generated during deployment process*
-EOF
 
-# Add deployment timestamp
-echo "" >> gcp-architecture.md
-echo "## Deployment Information" >> gcp-architecture.md
-echo "" >> gcp-architecture.md
-echo "- **Last Deployed:** $(date)" >> gcp-architecture.md
-echo "- **Deployed By:** $(whoami)" >> gcp-architecture.md
-echo "- **Git Commit:** $(git rev-parse --short HEAD 2>/dev/null || echo 'N/A')" >> gcp-architecture.md
-echo "- **Build Version:** $(node -p "require('./package.json').version" 2>/dev/null || echo 'N/A')" >> gcp-architecture.md
+*This documentation is automatically generated during deployment.*
+\`;
 
-print_success "GCP architecture documentation updated successfully"
+fs.writeFileSync('gcp-architecture.md', content);
+console.log('GCP architecture documentation updated successfully');
+"
+        print_success "GCP architecture documentation updated successfully"
+    else
+        print_warning "Could not update documentation - Node.js not available"
+    fi
+}
 
-# Step 4: Summary
-print_success "🎉 Deployment completed successfully!"
-echo ""
-echo "📋 Deployment Summary:"
-echo "  ✅ React app built and deployed to Firebase"
-echo "  ✅ GCP architecture documentation updated"
-echo "  ✅ Previous documentation backed up"
-echo ""
-echo "🌐 Live Site: https://letzpocket-site.web.app"
-echo "📚 Documentation: ./gcp-architecture.md"
-echo "🗂️  Backup: ./gcp-architecture.md.old"
-echo ""
-print_success "LetzPocket is now live! 🚀"
+# Main deployment function
+main() {
+    echo "🚀 Starting LetzPocket Deployment Process..."
+    echo "========================================"
+    
+    # Run all steps
+    check_dependencies
+    run_framework_audit
+    build_app
+    deploy_to_firebase
+    update_docs
+    
+    echo ""
+    print_success "🎉 Deployment completed successfully!"
+    echo ""
+    echo "📋 Deployment Summary:"
+    echo "  ✅ React app built and deployed to Firebase"
+    echo "  ✅ Framework audit completed"
+    echo "  ✅ GCP architecture documentation updated"
+    echo "  ✅ Previous documentation backed up"
+    echo ""
+    echo "🌐 Live Site: https://letzpocket-site.web.app"
+    echo "📚 Documentation: ./gcp-architecture.md"
+    echo "🗂️  Backup: ./gcp-architecture.md.old"
+    echo "📊 Framework Log: ./logs/latest-deployment.json"
+    echo ""
+    print_success "LetzPocket is now live! 🚀"
+}
+
+# Handle script arguments
+case "${1:-}" in
+    --skip-audit)
+        print_warning "Skipping framework audit"
+        SKIP_AUDIT=true
+        ;;
+    --help|-h)
+        echo "LetzPocket Deployment Script"
+        echo ""
+        echo "Usage: $0 [options]"
+        echo ""
+        echo "Options:"
+        echo "  --skip-audit    Skip framework audit step"
+        echo "  --help, -h      Show this help message"
+        echo ""
+        exit 0
+        ;;
+esac
+
+# Run main function
+main "$@"

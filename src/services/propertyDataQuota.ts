@@ -242,6 +242,10 @@ export class PropertyDataQuotaManager {
     // TODO: Integrate with your database
     const plan = QUOTA_PLANS.find(p => p.id === 'professional'); // Default to professional for demo
     
+    if (!plan) {
+      throw new Error('Default plan not found');
+    }
+
     // Mock usage data - replace with actual database query
     const mockUsage: QuotaUsage = {
       userId,
