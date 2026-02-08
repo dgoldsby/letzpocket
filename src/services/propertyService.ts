@@ -4,8 +4,9 @@ import {
   PropertyValueHistory,
   PropertyDataCache 
 } from '../types/property';
-import firebaseService from './firebase';
+import firebaseService from './firebaseService';
 import { propertyDataService } from './propertyData';
+import { chimnieService, ChimnieProperty } from './chimnieService';
 
 export interface PropertyFormData {
   address: string;
@@ -238,8 +239,83 @@ export class PropertyService {
   }
 
   /**
-   * Get property value history
+   * Enrich property data with Chimnie API information
    */
+  async enrichPropertyWithChimnieData(propertyData: PropertyFormData): Promise<ChimnieProperty | null> {
+    try {
+      return await chimnieService.enrichPropertyData(propertyData);
+    } catch (error) {
+      console.error('Failed to enrich property with Chimnie data:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Get enhanced property analytics with Chimnie data
+   */
+  async getEnhancedPropertyAnalytics(propertyId: string): Promise<PropertyAnalytics> {
+    const property = await this.getProperty(propertyId);
+    if (!property) {
+      throw new Error('Property not found');
+    }
+
+    try {
+      // Get PropertyData analytics
+      const propertyDataAnalytics = await propertyDataService.getPropertyAnalytics(
+        property.postcode,
+        {
+          property_type: property.property_type,
+          bedrooms: property.bedrooms,
+          construction_date: property.constructionDate,
+          finish_quality: property.finishQuality,
+          outdoor_space: property.outdoorSpace
+        }
+      );
+
+      // Get Chimnie data for additional insights
+      const chimnieData = await chimnieService.getAreaData(property.postcode);
+      const rentalMarket = await chimnieService.getRentalMarket(property.postcode);
+      const salesHistory = await chimnieService.getSalesHistory(property.postcode);
+
+      return {
+        postcode: property.postcode,
+        last_updated: new Date(),
+        valuation: propertyDataAnalytics.valuation,
+        rental_market: propertyDataAnalytics.rental_market,
+        sold_prices: propertyDataAnalytics.sold_prices,
+        growth: propertyDataAnalytics.growth,
+        demographics: propertyDataAnalytics.demographics,
+        chimnieData,
+        rentalMarketData: rentalMarket,
+        salesHistory,
+        errors: [
+          ...(propertyDataAnalytics.errors || []),
+          ...(chimnieData ? [] : [{
+            type: 'chimnie_error',
+            error: 'Failed to fetch Chimnie data'
+          }])
+        ]
+      };
+    } catch (error) {
+      console.error('Failed to get enhanced property analytics:', error);
+      return {
+        postcode: property.postcode,
+        last_updated: new Date(),
+        valuation: null,
+        rental_market: null,
+        sold_prices: null,
+        growth: null,
+        demographics: null,
+        chimnieData: null,
+        rentalMarketData: null,
+        salesHistory: null,
+        errors: [{
+          type: 'analytics_error',
+          error: error instanceof Error ? error.message : 'Unknown error'
+        }]
+      };
+    }
+  }
   async getPropertyHistory(propertyId: string): Promise<PropertyValueHistory[]> {
     const history = await firebaseService.getDocuments<PropertyValueHistory>(
       this.HISTORY_COLLECTION,

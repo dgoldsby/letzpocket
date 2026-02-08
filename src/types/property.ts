@@ -29,6 +29,9 @@ export interface PropertyAnalytics {
   sold_prices: SoldPricesData | null;
   growth: GrowthData | null;
   demographics: DemographicsData | null;
+  chimnieData?: any;
+  rentalMarketData?: any;
+  salesHistory?: any;
   errors: Array<{
     type: string;
     error: string;
