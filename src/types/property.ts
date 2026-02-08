@@ -13,6 +13,9 @@ export interface Property {
   constructionDate?: string;
   finishQuality?: string;
   outdoorSpace?: string;
+  imageUrls?: string[];
+  lastValuation?: any;
+  lastValuationDate?: Date;
   userId: string;
   createdAt: Date;
   updatedAt: Date;

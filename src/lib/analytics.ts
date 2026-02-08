@@ -48,16 +48,30 @@ export const EVENT_ACTIONS = {
   
   // Feature Usage
   UPLOAD_AGREEMENT: 'upload_agreement',
+  PROPERTY_CREATE: 'property_create',
+  PROPERTY_UPDATE: 'property_update',
+  PROPERTY_DELETE: 'property_delete',
+  PROPERTY_VIEW: 'property_view',
+  VALUATION_REQUEST: 'valuation_request',
+  IMAGE_UPLOAD: 'image_upload',
+  
+  // CTA Actions
+  CTA_BOT_START: 'cta_bot_start',
+  CTA_FEATURES_VIEW: 'cta_features_view',
+  CTA_SIGN_IN: 'cta_sign_in',
+  CTA_PRICE_ESTIMATE: 'cta_price_estimate',
+  CTA_YIELD_CALC: 'cta_yield_calc',
+  CTA_PROPERTY_MANAGE: 'cta_property_manage',
+  CTA_PROPERTY_ADD: 'cta_property_add',
+  CTA_PROPERTY_EDIT: 'cta_property_edit',
+  CTA_PROPERTY_DELETE: 'cta_property_delete',
+  CTA_PROPERTY_CANCEL: 'cta_property_cancel',
+  CTA_ANALYTICS_VIEW: 'cta_analytics_view',
   START_REVIEW: 'start_review',
   CALCULATE_PRICE: 'calculate_price',
   CALCULATE_YIELD: 'calculate_yield',
   VIEW_ANALYTICS: 'view_analytics',
   DOWNLOAD_REPORT: 'download_report',
-  
-  // CTA Actions - More specific naming
-  CTA_BOT_START: 'cta_bot_start',
-  CTA_FEATURES_VIEW: 'cta_features_view',
-  CTA_SIGN_IN: 'cta_sign_in',
   CTA_FREE_REVIEW_START: 'cta_free_review_start',
   CTA_FREE_REVIEW_NAVIGATION: 'cta_free_review_navigation',
   CTA_FREE_REVIEW_PRICING: 'cta_free_review_pricing',
