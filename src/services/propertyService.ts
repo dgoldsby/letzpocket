@@ -112,8 +112,8 @@ export class PropertyService {
 
     const docRef = await firebaseService.addDocument(this.COLLECTION_NAME, property as Omit<Property, 'id'>);
     
-    // Get initial valuation if we have enough data AND API key is configured
-    if (this.hasEnoughDataForValuation(propertyData) && process.env.REACT_APP_PROPERTYDATA_API_KEY) {
+    // Get initial valuation if we have enough data
+    if (this.hasEnoughDataForValuation(propertyData)) {
       try {
         await this.getAndStorePropertyValuation(docRef.id, propertyData);
       } catch (error) {
@@ -121,7 +121,7 @@ export class PropertyService {
         // Don't fail property creation if valuation fails
       }
     } else {
-      console.log('Skipping initial valuation - API key not configured or insufficient data');
+      console.log('Skipping initial valuation - insufficient data');
     }
 
     return {

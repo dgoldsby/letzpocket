@@ -369,11 +369,6 @@ export class ChimnieService {
     method?: 'GET' | 'POST';
     body?: string;
   } = {}): Promise<Response> {
-    // Check if API key is configured
-    if (!this.API_KEY) {
-      throw new Error('Chimnie API key not configured. Please add REACT_APP_CHIMNIE_API_KEY to your environment variables.');
-    }
-
     const url = `${this.BASE_URL}${endpoint}`;
     
     const requestOptions: RequestInit = {
@@ -401,7 +396,11 @@ export class ChimnieService {
         
         // Add more specific error messages for common status codes
         if (response.status === 401) {
-          errorMessage = 'Chimnie API: Invalid API key. Please check your REACT_APP_CHIMNIE_API_KEY configuration.';
+          if (!this.API_KEY) {
+            errorMessage = 'Chimnie API key not configured. Please add REACT_APP_CHIMNIE_API_KEY to your environment variables.';
+          } else {
+            errorMessage = 'Chimnie API: Invalid API key. Please check your REACT_APP_CHIMNIE_API_KEY configuration.';
+          }
         } else if (response.status === 403) {
           errorMessage = 'Chimnie API: Access forbidden. Your API key may not have sufficient permissions.';
         } else if (response.status === 429) {
