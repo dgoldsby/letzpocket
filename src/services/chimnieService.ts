@@ -1,5 +1,4 @@
 // Chimnie API service for property data integration
-// API Key: c335d9ed-1bdd-4f62-8336-a82d685fff69
 
 export interface ChimnieProperty {
   _id: string;
@@ -75,6 +74,7 @@ export interface ChimnieProperty {
       price_trend: 'rising' | 'falling' | 'stable';
       days_on_market: number;
     };
+  }
   images?: Array<{
     url: string;
     caption: string;
@@ -120,8 +120,12 @@ export interface ChimnieAreaData {
 }
 
 export class ChimnieService {
-  private readonly API_KEY = 'c335d9ed-1bdd-4f62-8336-a82d685fff69';
-  private readonly BASE_URL = 'https://api.chimnie.co.uk/v1';
+  private readonly BASE_URL = 'https://api.chimnie.com';
+  private readonly API_KEY = process.env.REACT_APP_CHIMNIE_API_KEY || '';
+
+  /**
+   * Search for properties using Chimnie API
+   */
   private readonly DEFAULT_HEADERS = {
     'Content-Type': 'application/json',
     'Authorization': `Bearer ${this.API_KEY}`,
@@ -164,6 +168,69 @@ export class ChimnieService {
       return response.json();
     } catch (error: any) {
       console.error('Failed to get Chimnie property:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Get comprehensive residential address data with specific fields
+   */
+  async getResidentialAddressData(fullAddress: string): Promise<{
+    address: {
+      full: string;
+      street: string;
+      town: string;
+      postcode: string;
+    };
+    value: {
+      sale: number;
+      rental: number;
+    };
+    bills: {
+      tax: number;
+      energy: number;
+      telecomms: number;
+    };
+    last_updated: string;
+  } | null> {
+    try {
+      const response = await this.makeRequest('/residential/address', {
+        method: 'POST',
+        body: JSON.stringify({
+          address: fullAddress,
+          fields: [
+            'Value:Sale',
+            'Value:Rental', 
+            'Bills:Tax',
+            'Bills:Energy',
+            'Bills:Telecomms'
+          ]
+        })
+      });
+      
+      const data = await response.json();
+      
+      // Transform the response to match our expected format
+      return {
+        address: data.address || {
+          full: fullAddress,
+          street: '',
+          town: '',
+          postcode: ''
+        },
+        value: {
+          sale: data.value?.sale || 0,
+          rental: data.value?.rental || 0
+        },
+        bills: {
+          tax: data.bills?.tax || 0,
+          energy: data.bills?.energy || 0,
+          telecomms: data.bills?.telecomms || 0
+        },
+        last_updated: new Date().toISOString()
+      };
+    } catch (error: any) {
+      console.error('Failed to get residential address data:', error);
       return null;
     }
   }
@@ -302,6 +369,11 @@ export class ChimnieService {
     method?: 'GET' | 'POST';
     body?: string;
   } = {}): Promise<Response> {
+    // Check if API key is configured
+    if (!this.API_KEY) {
+      throw new Error('Chimnie API key not configured. Please add REACT_APP_CHIMNIE_API_KEY to your environment variables.');
+    }
+
     const url = `${this.BASE_URL}${endpoint}`;
     
     const requestOptions: RequestInit = {
@@ -325,7 +397,18 @@ export class ChimnieService {
       clearTimeout(timeoutId);
 
       if (!response.ok) {
-        throw new Error(`Chimnie API error: ${response.status} - ${response.statusText}`);
+        let errorMessage = `Chimnie API error: ${response.status} - ${response.statusText}`;
+        
+        // Add more specific error messages for common status codes
+        if (response.status === 401) {
+          errorMessage = 'Chimnie API: Invalid API key. Please check your REACT_APP_CHIMNIE_API_KEY configuration.';
+        } else if (response.status === 403) {
+          errorMessage = 'Chimnie API: Access forbidden. Your API key may not have sufficient permissions.';
+        } else if (response.status === 429) {
+          errorMessage = 'Chimnie API: Rate limit exceeded. Please try again later.';
+        }
+        
+        throw new Error(errorMessage);
       }
 
       return response;

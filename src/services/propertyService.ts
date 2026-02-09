@@ -1,12 +1,24 @@
 import { 
   Property, 
   PropertyAnalytics, 
+  ValuationData, 
+  RentalMarketData, 
+  SoldPricesData,
+  DemographicsData,
+  GrowthData,
   PropertyValueHistory,
   PropertyDataCache 
 } from '../types/property';
-import firebaseService from './firebaseService';
+import { firebaseService } from './firebaseService';
 import { propertyDataService } from './propertyData';
 import { chimnieService, ChimnieProperty } from './chimnieService';
+import { 
+  doc, 
+  getDoc, 
+  updateDoc, 
+  serverTimestamp 
+} from 'firebase/firestore';
+import { firestore } from './firebase';
 
 export interface PropertyFormData {
   address: string;
@@ -18,7 +30,7 @@ export interface PropertyFormData {
   constructionDate?: string;
   finishQuality?: string;
   outdoorSpace?: string;
-  images?: File[];
+  images?: (string | File)[];
 }
 
 export interface PropertyValidationResult {
@@ -47,7 +59,7 @@ export class PropertyService {
     // Upload images if provided
     let imageUrls: string[] = [];
     if (propertyData.images && propertyData.images.length > 0) {
-      imageUrls = await this.uploadPropertyImages(propertyData.images);
+      imageUrls = await this.uploadPropertyImages(propertyData.images.filter(img => img instanceof File) as File[]);
     }
 
     // Create property document
@@ -57,24 +69,59 @@ export class PropertyService {
       city: propertyData.city,
       property_type: propertyData.property_type,
       bedrooms: propertyData.bedrooms,
-      purchasePrice: propertyData.purchasePrice,
-      constructionDate: propertyData.constructionDate,
-      finishQuality: propertyData.finishQuality,
-      outdoorSpace: propertyData.outdoorSpace,
-      userId,
-      imageUrls
+      landlordId: userId,
+      images: imageUrls,
+      status: 'active',
+      rental: {
+        currentRent: 0,
+        marketRent: 0,
+        lastReview: new Date(),
+        nextReview: new Date()
+      },
+      valuation: {
+        estimatedValue: 0,
+        lastUpdated: new Date(),
+        confidence: 'low'
+      },
+      analytics: {
+        postcode: propertyData.postcode,
+        last_updated: new Date(),
+        valuation: null,
+        rental: null,
+        marketTrends: null,
+        comparableProperties: null,
+        epcData: null,
+        chimnieData: null,
+        errors: []
+      }
     };
 
-    const docRef = await firebaseService.addDocument(this.COLLECTION_NAME, property);
+    // Only add optional fields if they exist
+    if (propertyData.purchasePrice !== undefined) {
+      property.purchasePrice = propertyData.purchasePrice;
+    }
+    if (propertyData.constructionDate) {
+      property.constructionDate = propertyData.constructionDate;
+    }
+    if (propertyData.finishQuality) {
+      property.finishQuality = propertyData.finishQuality;
+    }
+    if (propertyData.outdoorSpace) {
+      property.outdoorSpace = propertyData.outdoorSpace;
+    }
+
+    const docRef = await firebaseService.addDocument(this.COLLECTION_NAME, property as Omit<Property, 'id'>);
     
-    // Get initial valuation if we have enough data
-    if (this.hasEnoughDataForValuation(propertyData)) {
+    // Get initial valuation if we have enough data AND API key is configured
+    if (this.hasEnoughDataForValuation(propertyData) && process.env.REACT_APP_PROPERTYDATA_API_KEY) {
       try {
         await this.getAndStorePropertyValuation(docRef.id, propertyData);
       } catch (error) {
         console.warn('Initial valuation failed:', error);
         // Don't fail property creation if valuation fails
       }
+    } else {
+      console.log('Skipping initial valuation - API key not configured or insufficient data');
     }
 
     return {
@@ -91,7 +138,7 @@ export class PropertyService {
   async getLandlordProperties(userId: string): Promise<Property[]> {
     const properties = await firebaseService.getDocuments<Property>(
       this.COLLECTION_NAME,
-      [['userId', '==', userId]]
+      [['landlordId', '==', userId]]
     );
     
     return properties.map((doc: any) => ({
@@ -114,8 +161,8 @@ export class PropertyService {
     
     return {
       ...property,
-      createdAt: property.createdAt?.toDate() || new Date(),
-      updatedAt: property.updatedAt?.toDate() || new Date()
+      createdAt: property.createdAt || new Date(),
+      updatedAt: property.updatedAt || new Date()
     };
   }
 
@@ -132,13 +179,13 @@ export class PropertyService {
     // Handle image uploads
     let imageUrls: string[] = [];
     if (updates.images && updates.images.length > 0) {
-      imageUrls = await this.uploadPropertyImages(updates.images);
+      imageUrls = await this.uploadPropertyImages(updates.images.filter(img => img instanceof File) as File[]);
     }
 
     const updateData: Partial<Property> = {
       ...updates,
       postcode: updates.postcode?.toUpperCase().replace(/\s/g, ''),
-      imageUrls: imageUrls.length > 0 ? imageUrls : undefined,
+      images: imageUrls.length > 0 ? imageUrls : undefined,
       updatedAt: new Date()
     };
 
@@ -177,13 +224,13 @@ export class PropertyService {
       throw new Error('Property not found');
     }
 
-    if (property.userId !== userId) {
+    if (property.landlordId !== userId) {
       throw new Error('Not authorized to delete this property');
     }
 
     // Delete associated images from storage
-    if (property.imageUrls && property.imageUrls.length > 0) {
-      await this.deletePropertyImages(property.imageUrls);
+    if (property.images && property.images.length > 0) {
+      await this.deletePropertyImages(property.images);
     }
 
     // Delete property document
@@ -216,8 +263,6 @@ export class PropertyService {
       );
 
       return {
-        postcode: property.postcode,
-        last_updated: new Date(),
         ...analytics
       };
     } catch (error) {
@@ -226,10 +271,11 @@ export class PropertyService {
         postcode: property.postcode,
         last_updated: new Date(),
         valuation: null,
-        rental_market: null,
-        sold_prices: null,
-        growth: null,
-        demographics: null,
+        rental: null,
+        marketTrends: null,
+        comparableProperties: null,
+        epcData: null,
+        chimnieData: null,
         errors: [{
           type: 'analytics_error',
           error: error instanceof Error ? error.message : 'Unknown error'
@@ -281,13 +327,11 @@ export class PropertyService {
         postcode: property.postcode,
         last_updated: new Date(),
         valuation: propertyDataAnalytics.valuation,
-        rental_market: propertyDataAnalytics.rental_market,
-        sold_prices: propertyDataAnalytics.sold_prices,
-        growth: propertyDataAnalytics.growth,
-        demographics: propertyDataAnalytics.demographics,
+        rental: propertyDataAnalytics.rental,
+        marketTrends: null,
+        comparableProperties: null,
+        epcData: null,
         chimnieData,
-        rentalMarketData: rentalMarket,
-        salesHistory,
         errors: [
           ...(propertyDataAnalytics.errors || []),
           ...(chimnieData ? [] : [{
@@ -302,13 +346,11 @@ export class PropertyService {
         postcode: property.postcode,
         last_updated: new Date(),
         valuation: null,
-        rental_market: null,
-        sold_prices: null,
-        growth: null,
-        demographics: null,
+        rental: null,
+        marketTrends: null,
+        comparableProperties: null,
+        epcData: null,
         chimnieData: null,
-        rentalMarketData: null,
-        salesHistory: null,
         errors: [{
           type: 'analytics_error',
           error: error instanceof Error ? error.message : 'Unknown error'
@@ -320,7 +362,7 @@ export class PropertyService {
     const history = await firebaseService.getDocuments<PropertyValueHistory>(
       this.HISTORY_COLLECTION,
       [['propertyId', '==', propertyId]],
-      [['valuationDate', 'desc']]
+      ['valuationDate', 'desc']
     );
 
     return history.map((doc: any) => ({
@@ -410,19 +452,16 @@ export class PropertyService {
       // Store valuation history
       const historyEntry: Omit<PropertyValueHistory, 'id' | 'createdAt'> = {
         propertyId,
-        valuationDate: new Date(),
-        rentalValue: valuation.rental_value,
-        saleValue: 0, // PropertyData doesn't provide sale valuations
-        confidenceIntervalLower: valuation.confidence_interval.lower,
-        confidenceIntervalUpper: valuation.confidence_interval.upper,
-        dataSource: 'propertydata'
+        date: new Date(),
+        value: valuation.rental,
+        source: 'propertydata'
       };
 
       await firebaseService.addDocument(this.HISTORY_COLLECTION, historyEntry);
 
       // Update property with current valuation
       await firebaseService.updateDocument(this.COLLECTION_NAME, propertyId, {
-        currentValue: valuation.rental_value * 12, // Annual rental value
+        currentValue: valuation.rental * 12, // Annual rental value
         lastValuation: valuation,
         lastValuationDate: new Date()
       });
@@ -507,8 +546,8 @@ export class PropertyService {
   }> {
     const properties = await this.getLandlordProperties(userId);
     
-    const totalValue = properties.reduce((sum, prop) => sum + (prop.currentValue || 0), 0);
-    const totalRent = properties.reduce((sum, prop) => sum + (prop.monthlyRent || 0), 0);
+    const totalValue = properties.reduce((sum, prop) => sum + (prop.rental.currentRent || 0), 0);
+    const totalRent = properties.reduce((sum, prop) => sum + (prop.rental.marketRent || 0), 0);
     const averageRent = properties.length > 0 ? totalRent / properties.length : 0;
 
     const propertiesByType = properties.reduce((acc, prop) => {
@@ -522,6 +561,183 @@ export class PropertyService {
       averageRent,
       propertiesByType
     };
+  }
+
+  /**
+   * Fetch PropertyData API information for a property
+   */
+  async fetchPropertyData(propertyId: string): Promise<any> {
+    try {
+      const property = await this.getProperty(propertyId);
+      if (!property) {
+        throw new Error('Property not found');
+      }
+
+      const valuationData = await propertyDataService.getPropertyValuation(property.postcode);
+      
+      // Update property with new data
+      await this.updatePropertyAnalytics(propertyId, {
+        valuation: valuationData,
+        last_updated: new Date()
+      });
+
+      return valuationData;
+    } catch (error) {
+      console.error('Failed to fetch PropertyData:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Fetch EPC data for a property
+   */
+  async fetchEPCData(propertyId: string): Promise<any> {
+    try {
+      const property = await this.getProperty(propertyId);
+      if (!property) {
+        throw new Error('Property not found');
+      }
+
+      // TODO: Implement EPC API integration
+      console.log('EPC data fetching not yet implemented');
+      return { message: 'EPC data not yet available' };
+    } catch (error) {
+      console.error('Failed to fetch EPC data:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Fetch Chimnie data for a property using residential address endpoint
+   */
+  async fetchChimnieData(propertyId: string): Promise<any> {
+    console.log(`🏠 fetchChimnieData called for property: ${propertyId}`);
+    
+    try {
+      const property = await this.getProperty(propertyId);
+      console.log('📋 Retrieved property:', property);
+      
+      if (!property) {
+        throw new Error('Property not found');
+      }
+
+      // Create full address from property data
+      const fullAddress = `${property.address}, ${property.city}, ${property.postcode}`;
+      console.log('📍 Full address for Chimnie API:', fullAddress);
+      
+      // Get comprehensive residential address data with specific fields
+      const chimnieData = await chimnieService.getResidentialAddressData(fullAddress);
+      console.log('📊 Chimnie API response:', chimnieData);
+      
+      if (chimnieData) {
+        console.log('✅ Chimnie data received, updating property...');
+        
+        // Update property with Chimnie data including values and bills
+        await this.updatePropertyAnalytics(propertyId, {
+          chimnieData: {
+            address: chimnieData.address,
+            value: chimnieData.value,
+            bills: chimnieData.bills,
+            last_updated: chimnieData.last_updated,
+            dateAdded: new Date().toISOString()
+          },
+          last_updated: new Date()
+        });
+
+        // Also update property's financial information
+        await this.updatePropertyFinancials(propertyId, {
+          estimatedValue: chimnieData.value.sale,
+          estimatedRent: chimnieData.value.rental,
+          estimatedBills: chimnieData.bills
+        });
+        
+        console.log('✅ Property updated with Chimnie data');
+      } else {
+        console.log('❌ No Chimnie data received');
+      }
+
+      return chimnieData;
+    } catch (error) {
+      console.error('❌ Failed to fetch Chimnie data:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update property financial information
+   */
+  private async updatePropertyFinancials(propertyId: string, financials: {
+    estimatedValue?: number;
+    estimatedRent?: number;
+    estimatedBills?: {
+      tax: number;
+      energy: number;
+      telecomms: number;
+    };
+  }): Promise<void> {
+    try {
+      const propertyRef = doc(firestore, this.COLLECTION_NAME, propertyId);
+      
+      const updates: any = {
+        updatedAt: serverTimestamp()
+      };
+
+      if (financials.estimatedValue !== undefined) {
+        updates['valuation.estimatedValue'] = financials.estimatedValue;
+        updates['valuation.lastUpdated'] = new Date();
+      }
+
+      if (financials.estimatedRent !== undefined) {
+        updates['rental.marketRent'] = financials.estimatedRent;
+        updates['rental.lastReview'] = new Date();
+      }
+
+      if (financials.estimatedBills) {
+        updates['estimatedBills'] = financials.estimatedBills;
+      }
+
+      await updateDoc(propertyRef, updates);
+    } catch (error) {
+      console.error('Failed to update property financials:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Update property analytics with new data
+   */
+  private async updatePropertyAnalytics(propertyId: string, newAnalytics: Partial<PropertyAnalytics>): Promise<void> {
+    try {
+      const propertyRef = doc(firestore, this.COLLECTION_NAME, propertyId);
+      const propertyDoc = await getDoc(propertyRef);
+      
+      if (propertyDoc.exists()) {
+        const currentAnalytics = propertyDoc.data()?.analytics || {
+          postcode: '',
+          last_updated: new Date(),
+          valuation: null,
+          rental: null,
+          marketTrends: null,
+          comparableProperties: null,
+          epcData: null,
+          chimnieData: null,
+          errors: []
+        };
+
+        const updatedAnalytics = {
+          ...currentAnalytics,
+          ...newAnalytics
+        };
+
+        await updateDoc(propertyRef, {
+          analytics: updatedAnalytics,
+          updatedAt: serverTimestamp()
+        });
+      }
+    } catch (error) {
+      console.error('Failed to update property analytics:', error);
+      throw error;
+    }
   }
 }
 

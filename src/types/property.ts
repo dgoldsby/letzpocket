@@ -8,15 +8,29 @@ export interface Property {
   property_type: string;
   bedrooms: number;
   purchasePrice?: number;
-  currentValue?: number;
-  monthlyRent?: number;
   constructionDate?: string;
   finishQuality?: string;
   outdoorSpace?: string;
-  imageUrls?: string[];
-  lastValuation?: any;
-  lastValuationDate?: Date;
-  userId: string;
+  images?: string[];
+  landlordId: string;
+  status: 'active' | 'inactive' | 'archived';
+  rental: {
+    currentRent: number;
+    marketRent: number;
+    lastReview: Date;
+    nextReview: Date;
+  };
+  valuation: {
+    estimatedValue: number;
+    lastUpdated: Date;
+    confidence: 'low' | 'medium' | 'high';
+  };
+  estimatedBills?: {
+    tax: number;
+    energy: number;
+    telecomms: number;
+  };
+  analytics: PropertyAnalytics;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -24,14 +38,12 @@ export interface Property {
 export interface PropertyAnalytics {
   postcode: string;
   last_updated: Date;
-  valuation: ValuationData | null;
-  rental_market: RentalMarketData | null;
-  sold_prices: SoldPricesData | null;
-  growth: GrowthData | null;
-  demographics: DemographicsData | null;
-  chimnieData?: any;
-  rentalMarketData?: any;
-  salesHistory?: any;
+  valuation: any;
+  rental: any;
+  marketTrends: any;
+  comparableProperties: any;
+  epcData: any;
+  chimnieData: any;
   errors: Array<{
     type: string;
     error: string;
@@ -110,13 +122,9 @@ export interface ApiUsageLog {
 export interface PropertyValueHistory {
   id: string;
   propertyId: string;
-  valuationDate: Date;
-  rentalValue: number;
-  saleValue: number;
-  confidenceIntervalLower: number;
-  confidenceIntervalUpper: number;
-  dataSource: string;
-  createdAt: Date;
+  value: number;
+  date: Date;
+  source: string;
 }
 
 export interface UserApiQuota {
